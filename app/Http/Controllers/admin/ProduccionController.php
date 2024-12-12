@@ -48,10 +48,25 @@ class ProduccionController extends Controller
         }
 
         // Calcular el total de kilogramos y baldes disponibles
-        $total_kg = $proceso->baldes * $proceso->cantidad + $proceso->cantidad_incompleto;
-        $total_baldes = round($total_kg / $proceso->cantidad, 1);
+        //$total_kg = $proceso->baldes * $proceso->cantidad + $proceso->cantidad_incompleto;
+        //$total_baldes = round($total_kg / $proceso->cantidad, 1);
 
-        return view('admin.produccion.create', compact('codigo', 'usuarios', 'proceso', 'total_baldes', 'total_kg'));
+        // Procesos, Produccions, detalle_produccions
+        $lista_detalles_produccion = DB::table('produccions')
+            ->join('detalle_produccions', 'produccions.id', '=', 'detalle_produccions.produccion_id')
+            ->where('produccions.proceso_id', '=', $proceso->id)
+            ->groupBy('produccions.id')
+            ->get();
+        $fin_total_kg = $proceso->baldes * $proceso->cantidad + $proceso->cantidad_incompleto;
+        $fin_total_baldes = round($fin_total_kg / $proceso->cantidad, 1);
+        $total_kg = $fin_total_kg;
+        $total_baldes = $fin_total_baldes;
+        foreach($lista_detalles_produccion as $det_prod){
+            $total_kg -= $det_prod->cantidad;
+            $total_baldes -= $det_prod->baldes;
+        }
+
+        return view('admin.produccion.create', compact('codigo', 'usuarios', 'proceso', 'total_baldes', 'total_kg', 'lista_detalles_produccion', 'fin_total_kg', 'fin_total_baldes'));
     }
 
 
@@ -68,49 +83,52 @@ class ProduccionController extends Controller
             $userId = Auth::id();
 
             // Crear una nueva producción
-            $produccion = Produccion::create([
-                'codigo' => $request->codigo,
-                'fecha' => $request->fecha,
-                'proceso_id' => $request->proceso_id,
-                'user_id' => $userId, // Usuario actualmente autenticado
-                'sabor' => $request->sabor,
-                'observacion' => $request->observacion
-            ]);
-
-            // Variables para acumular la cantidad total de baldes y kilos
-            $totalBaldesUtilizados = 0;
-            $totalKilosUtilizados = 0;
-
-            // Recorrer el carrito y crear los detalles de la producción
-            foreach ($carrito as $item) {
-                Detalle_Produccion::create([
-                    'produccion_id' => $produccion->id,
-                    'user_id' => $item['operadorId'], // Usuario operador del detalle
-                    'baldes' => $item['cantidadBaldes'],
-                    'cantidad' => $item['cantidadKilos']
+            if(count($carrito) > 0){
+                $produccion = Produccion::create([
+                    'codigo' => $request->codigo,
+                    'fecha' => $request->fecha,
+                    'proceso_id' => $request->proceso_id,
+                    'user_id' => $userId, // Usuario actualmente autenticado
+                    'sabor' => $request->sabor,
+                    'observacion' => $request->observacion
                 ]);
 
-                // Acumular la cantidad total de baldes y kilos utilizados
-                $totalBaldesUtilizados += $item['cantidadBaldes'];
-                $totalKilosUtilizados += $item['cantidadKilos'];
+                // Variables para acumular la cantidad total de baldes y kilos
+                $totalBaldesUtilizados = 0;
+                $totalKilosUtilizados = 0;
+
+                // Recorrer el carrito y crear los detalles de la producción
+                foreach ($carrito as $item) {
+                    Detalle_Produccion::create([
+                        'produccion_id' => $produccion->id,
+                        'user_id' => $item['operadorId'], // Usuario operador del detalle
+                        'baldes' => $item['cantidadBaldes'],
+                        'cantidad' => $item['cantidadKilos']
+                    ]);
+
+                    // Acumular la cantidad total de baldes y kilos utilizados
+                    $totalBaldesUtilizados += $item['cantidadBaldes'];
+                    $totalKilosUtilizados += $item['cantidadKilos'];
+                }
+
+                // Obtener el proceso correspondiente
+                $proceso = Proceso::find($request->proceso_id);
+
+                // Restar la cantidad total de baldes y kilos utilizados
+                $proceso->total_baldes -= $totalBaldesUtilizados;
+                $proceso->total_cantidad -= $totalKilosUtilizados;
+
+                // Guardar los cambios en el proceso
+                $proceso->save();
+                DB::commit();
+                return redirect('admin/produccion')->with('correcto', 'Proceso añadido correctamente.');
+            } else {
+                return redirect('admin/produccion')->with('correcto', 'No se agrego nada.');
             }
 
-            // Obtener el proceso correspondiente
-            $proceso = Proceso::find($request->proceso_id);
-
-            // Restar la cantidad total de baldes y kilos utilizados
-            $proceso->total_baldes -= $totalBaldesUtilizados;
-            $proceso->total_cantidad -= $totalKilosUtilizados;
-
-            // Guardar los cambios en el proceso
-            $proceso->save();
-
-            DB::commit();
-
-            return redirect('admin/produccion')->with('correcto', 'Proceso añadido correctamente.');
         } catch (\Exception $e) {
             DB::rollBack();
-            return redirect('admin/produccion')->with('correcto', 'Proceso añadido correctamente.');
+            return redirect('admin/produccion')->with('error', 'Ocurrio un error, restaurando.'. $e->getMessage());
         }
     }
 
@@ -124,8 +142,12 @@ class ProduccionController extends Controller
     public function edit($id)
     {
         $produccion = Produccion::findOrFail($id);
+        $usuarios = User::with('roles')->where('tipo', 2)->get(); // Cargar los usuarios con sus roles
 
-        return view('admin.produccion.edit', compact('produccion'));
+        $codigo = $produccion->codigo;
+        $proceso = Proceso::find($produccion->proceso_id );
+
+        return view('admin.produccion.edit', compact('produccion', 'usuarios', 'codigo', 'proceso'));
     }
 
 

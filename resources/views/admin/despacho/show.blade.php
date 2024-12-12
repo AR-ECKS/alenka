@@ -57,7 +57,11 @@
                                         <div class="card-body">
                                             <div class="card-title px-1 py-2" >
                                                 <b>
+                                                    @if(count($detalles) > 0)
                                                     <p>Se envió la siguiente cantidad de materia prima:</p>
+                                                    @else
+                                                        <p>ERROR:</p>
+                                                    @endif
                                                 </b>
                                             </div>
                                             <table class="table table-bordered table-sm table-striped ">
@@ -69,20 +73,24 @@
                                                     </tr>
                                                 </thead>
                                                 <tbody>
-                                                    @foreach ($detalles as $detalle)
+                                                    @if(count($detalles) > 0)
+                                                        @foreach ($detalles as $detalle)
+                                                            <tr>
+                                                                <td>{{ $detalle->materia_prima->nombre }}</td>
+                                                                <td><b>{{ $detalle->cantidad_presentacion }}</b>
+                                                                    {{ $detalle->materia_prima->presentacion }}s</td>
+                                                                <td><b>{{ $detalle->cantidad_unidad }}</b>
+                                                                    {{ $detalle->materia_prima->unidad_medida }} </td>
+                                                            </tr>
+                                                        @endforeach
                                                         <tr>
-                                                            <td>{{ $detalle->materia_prima->nombre }}</td>
-                                                            <td><b>{{ $detalle->cantidad_presentacion }}</b>
-                                                                {{ $detalle->materia_prima->presentacion }}s</td>
-                                                            <td><b>{{ $detalle->cantidad_unidad }}</b>
-                                                                {{ $detalle->materia_prima->unidad_medida }} </td>
+                                                            <td colspan="2"><b>Total:</b></td>
+                                                            <td><b>{{ number_format($detalle->despacho->total, 2, ',', '.') }}
+                                                                </b></td>
                                                         </tr>
-                                                    @endforeach
-                                                    <tr>
-                                                        <td colspan="2"><b>Total:</b></td>
-                                                        <td><b>{{ number_format($detalle->despacho->total, 2, ',', '.') }}
-                                                            </b></td>
-                                                    </tr>
+                                                    @else
+                                                        <p class="text-danger">Este despacho no tiene productos</p>
+                                                    @endif
                                                 </tbody>
                                             </table>
 

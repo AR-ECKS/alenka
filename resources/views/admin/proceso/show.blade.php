@@ -22,7 +22,7 @@
                     <p class="card-text">
                     <div class="author">
                       <a href="#">
-                      <img src="{{ asset('storage').'/'.proceso->imagen}}" alt="">
+                      <img src="{{-- asset('storage').'/'.proceso->imagen--}}" alt="NO IMAGE">
 
                         <h5 class="title mt-3">{{ $proceso->id }}</h5>
                       </a>

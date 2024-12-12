@@ -1,4 +1,5 @@
-@extends('layouts.app') @section('content')
+@extends('layouts.app')
+@section('content')
     {{-- <nav aria-label="breadcrumb">
         <ol class="breadcrumb" style="background: #f4f6f9;">
             <li class="breadcrumb-item">

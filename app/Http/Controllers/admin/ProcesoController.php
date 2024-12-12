@@ -14,6 +14,7 @@ use App\Models\Despacho;
 use App\Models\Detalle_despacho;
 use App\Notifications\DesviacionNotificacion;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Validation\Rule;
 
 class ProcesoController extends Controller
 {
@@ -67,7 +68,7 @@ class ProcesoController extends Controller
         $request->validate([
             'baldes' => 'required|integer',
             'cantidad' => 'required|numeric',
-            'cantidad_incompleto' => 'required|numeric',
+            'cantidad_incompleto' => ['required_if:incompleto,true']
         ]);
 
         // Calcular total de kilogramos
@@ -138,9 +139,16 @@ class ProcesoController extends Controller
 
     public function edit($id)
     {
+        $fechaActual = now()->format('Y-m-d'); // Obtener la fecha actual en formato YYYY-MM-DD
         $proceso = Proceso::findOrFail($id);
+        $despachos = Despacho::where('estado', 1)
+        ->where('tipo', 1)
+            ->whereDate('created_at', $fechaActual)
+            ->orWhere('id', $proceso->despacho_id)
+            ->get();
+        $codigo = $proceso->codigo;
 
-        return view('admin.proceso.edit', compact('proceso'));
+        return view('admin.proceso.edit', compact('proceso', 'despachos', 'codigo'));
     }
 
 

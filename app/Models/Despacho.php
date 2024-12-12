@@ -38,7 +38,7 @@ class Despacho extends Model
     }
 
     // Relación para el usuario receptor (receptor)
-    public function receptor()
+    public function receptor_u()
     {
         return $this->belongsTo(User::class, 'receptor');
     }

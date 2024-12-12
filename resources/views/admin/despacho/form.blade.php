@@ -68,13 +68,14 @@
                             {{ $materia_prima->unidad_medida }}</td>
                         <td>
                             <input type="text" class="form-control" id="presentacion_{{ $index }}"
-                                data-cantidad="{{ $materia_prima->cantidad }}"
+                                data-cantidad="{{ $materia_prima->cantidad }}" data-max="{{ $materia_prima->stock_presentacion }}"
                                 oninput="calcularUnidad({{ $index }})">
                         </td>
                         <td>
                             <input type="text" class="form-control" id="unidad_{{ $index }}"
-                                data-cantidad="{{ $materia_prima->cantidad }}"
-                                oninput="calcularPresentacion({{ $index }})">
+                                data-cantidad="{{ $materia_prima->cantidad }}" data-max="{{ $materia_prima->stock_unidad }}"
+                                oninput="calcularPresentacion({{ $index }})"
+                                {{-- max="{{$materia_prima->cantidad}}" --}}>
                         </td>
                         <td>
                             <button type="button" class="btn btn-sm btn-success agregar-btn"
@@ -159,10 +160,18 @@
         let presentacionInput = document.getElementById(`presentacion_${index}`);
         let unidadInput = document.getElementById(`unidad_${index}`);
         let cantidad = parseFloat(presentacionInput.getAttribute('data-cantidad'));
+        let max = parseFloat(presentacionInput.getAttribute('data-max'));
         let presentacionValue = parseFloat(presentacionInput.value);
 
         if (!isNaN(presentacionValue) && !isNaN(cantidad)) {
-            unidadInput.value = presentacionValue * cantidad;
+            //console.log(presentacionInput.value, '>',max);
+            if(0 >= presentacionInput.value ){
+                presentacionInput.value = 1.00;
+            }
+            if(presentacionInput.value > max) {
+                presentacionInput.value = max;
+            }
+            unidadInput.value = presentacionInput.value * cantidad;
         } else {
             unidadInput.value = '';
         }
@@ -172,14 +181,22 @@
         let presentacionInput = document.getElementById(`presentacion_${index}`);
         let unidadInput = document.getElementById(`unidad_${index}`);
         let cantidad = parseFloat(unidadInput.getAttribute('data-cantidad'));
+        let max = parseFloat(unidadInput.getAttribute('data-max'));
         let unidadValue = parseFloat(unidadInput.value);
 
         if (!isNaN(unidadValue) && !isNaN(cantidad)) {
-            presentacionInput.value = unidadValue / cantidad;
+            if(0 >= unidadInput.value ){
+                unidadInput.value = 1.00;
+            }
+            if(unidadInput.value > max) {
+                unidadInput.value = max;
+            }
+            presentacionInput.value = unidadInput.value / cantidad;
         } else {
             presentacionInput.value = '';
         }
     }
+
 
     function agregarProducto(index, id, nombre, presentacion, unidad_medida, cantidad, stock_presentacion,
     stock_unidad) {
@@ -278,8 +295,10 @@
         document.getElementById('total').value = `${totalUnidad.toFixed(2)}`;
     }
 
-    function enviarCarrito() {
-        document.getElementById('carrito').value = JSON.stringify(carrito);
+    function enviarCarrito(ev) {
+        /* console.log(JSON.stringify(carrito));
+        ev.preventDefault();
+        document.getElementById('carrito').value = JSON.stringify(carrito); */
     }
 
     function limpiarInputs() {
@@ -322,6 +341,18 @@
                 },
             },
 
+        });
+
+        // evitar que se envie el form
+        $("form").on('submit', function(evt){
+            const data = JSON.stringify(carrito);
+            // validaciones del formulario
+            if(data.length == 0){
+                evt.preventDefault();
+            } else {
+                document.getElementById('carrito').value = JSON.stringify(carrito);
+            }
+            // tu codigo aqui
         });
     });
 </script>

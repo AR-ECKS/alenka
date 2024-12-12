@@ -74,11 +74,12 @@
 
         <div class="col-sm-12">
             <div class="alert alert-primary text-center" role="alert">
+                <h6 class="mb-1" style="color: #000"> <b class="mx-2">{{ $fin_total_baldes }} </b>baldes totales, que son <b class="mx-2">{{ $fin_total_kg }}</b> kilos </h6>
                 <h5 class="mb-3"> <b id="totalBaldesDisponibles" class="mx-2">
-                        {{ $proceso->total_baldes }} </b>baldes disponibles, que son <b id="totalKgDisponibles"
+                        {{ $total_baldes }} </b>baldes disponibles, que son <b id="totalKgDisponibles"
                         class="mx-2">
-                        {{ $proceso->total_cantidad }} </b>kilos </h5>
-
+                        {{ $total_kg }} </b>kilos </h5>
+                    {{ json_encode($lista_detalles_produccion) }}
             </div>
         </div>
 
@@ -325,6 +326,10 @@
             // Evento change del input cantidad_baldes
             $('#cantidad_baldes').on('input', function() {
                 var cantidadBaldes = $(this).val();
+                if(0 > cantidadBaldes ){
+                    cantidadBaldes = 1;
+                    $(this).val(cantidadBaldes);
+                }
                 var cantidadKilos = cantidadBaldes * {{ $proceso->cantidad }};
                 $('#cantidad_kilos').val(cantidadKilos.toFixed(1));
             });
@@ -332,6 +337,10 @@
             // Evento change del input cantidad_kilos
             $('#cantidad_kilos').on('input', function() {
                 var cantidadKilos = $(this).val();
+                if(0 > cantidadKilos ){
+                    cantidadKilos = 1;
+                    $(this).val(cantidadKilos);
+                }
                 var cantidadBaldes = cantidadKilos / {{ $proceso->cantidad }};
                 $('#cantidad_baldes').val(cantidadBaldes.toFixed(1));
             });
@@ -340,10 +349,8 @@
 
                 var cantidadBaldes = parseFloat($('#cantidad_baldes').val());
                 var cantidadKilos = parseFloat($('#cantidad_kilos').val());
-                var operador = $('#usuario')
-            .val(); // Obtener el ID del usuario seleccionado para la validación
-                var operadorNombre = $('#usuario option:selected')
-            .text(); // Obtener el nombre del usuario seleccionado para mostrar
+                var operador = $('#usuario').val(); // Obtener el ID del usuario seleccionado para la validación
+                var operadorNombre = $('#usuario option:selected').text(); // Obtener el nombre del usuario seleccionado para mostrar
 
                 var maquina = $('#maquina').val();
 
@@ -387,6 +394,12 @@
             $('form').submit(function(event) {
                 // Actualizar campo oculto 'carrito' antes de enviar el formulario
                 actualizarCampoCarrito();
+
+                /* if(carrito.length > 0){
+                    //pasa
+                } else {
+                    event.preventDefault();
+                } */
             });
 
             // Prevenir envío del formulario al presionar Enter

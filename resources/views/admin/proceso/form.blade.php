@@ -8,7 +8,10 @@
             <select class="form-control" id="despacho_id" name="despacho_id" required>
                 <option value="">Selecciona un despacho</option>
                 @foreach ($despachos as $despacho)
-                    <option value="{{ $despacho->id }}" {{ isset($proceso) && $proceso->despacho_id == $despacho->id ? 'selected' : '' }}>
+                    <option value="{{ $despacho->id }}" {{ isset($proceso) && $proceso->despacho_id == $despacho->id ? 'selected' : '' }}
+                        data-sender="{{ $despacho->user->username}}"
+                        data-receiber="{{ $despacho->receptor_u->username}}"
+                        data-observation="{{ $despacho->observacion }}">
                         {{ $despacho->codigo }}
                     </option>
                 @endforeach
@@ -37,7 +40,28 @@
 <div class="col-sm-12">
     <div class="container">
         <div class="row justify-content-center">
-            <div class="col-sm-6">
+            <div class="col-sm-5" id="detalles">
+                <div class="card card-proveedor">
+                    <div class="card-body">
+                        <div class="author">
+                            <b>
+                                <h5>Detalles de Despacho:</h5>
+                            </b>
+
+                        </div>
+                        <div class="card-description">
+                            <b>Envio de:</b> <span id="envioDe"></span> <br>
+                            <b>Para:</b> <span id="para"></span> <br>
+                            <b>Observación</b> <span id="observacion"></span> <br>
+                            <b>Kg aproximados</b> <span id="kgAprox"></span> kg
+                        </div>
+                    </div>
+                    {{-- <div class="card-footer">
+
+                    </div> --}}
+                </div>
+            </div>
+            <div class="col-sm-7">
                 <table class="table table-responsive table-striped table-sm">
                     <thead class="thead-dark">
                         <tr>
@@ -92,12 +116,33 @@
             </div>
         </div>
 
-            <div class="col-sm-12">
+        <div class="row">
+            <div class="col-sm-6">
                 <div class="input-group mb-2">
                     <div class="input-group-prepend">
                         <div class="input-group-text"><i class="fas fa-user-edit" style="padding-right:5px"></i><b>{{ 'Total Kg' }}</b></div>
                     </div>
                     <input type="text" class="form-control" id="total" name="total" value="{{ isset($proceso->total) ? $proceso->total : '' }}" readonly>
+                </div>
+            </div>
+            <div class="col-sm-6">
+                <div class="input-group mb-2">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text"><i class="fas fa-user-edit" style="padding-right:5px"></i><b>{{ 'Sabor' }}</b></div>
+                    </div>
+                    <input type="text" class="form-control" id="id_sabor" name="id_sabor" value="{{-- isset($proceso->total) ? $proceso->total : '' --}}">
+                    {{-- <select class="form-control" id="nombre_sabor" name="id_sabor" required>
+                        <option value="" disabled selected>Por favor seleccione una máquina</option>
+                            <option value="1">Máquina 1</option>
+                            <option value="2">Máquina 2</option>
+                            <option value="3">Máquina 3</option>
+                            <option value="4">Máquina 4</option>
+                            <option value="5">Máquina 5</option>
+                            <option value="6">Máquina 6</option>
+                            <option value="7">Máquina 7</option>
+                            <option value="8">Máquina 8</option>
+                            <option value="9">Máquina 9</option>
+                    </select> --}}
                 </div>
             </div>
 
@@ -111,6 +156,7 @@
                 </div>
             </div>
         </div>
+    </div>
         </div>
 
         <div class="float-right">
@@ -125,9 +171,16 @@
             let baldes = parseFloat(document.getElementById('baldes').value) || 0;
             let cantidad = parseFloat(document.getElementById('cantidad').value) || 0;
             let cantidadIncompleto = parseFloat(document.getElementById('cantidad_incompleto').value) || 0;
+            const maxKg = Number.parseFloat( $('#kgAprox').text() );
 
             let total = (baldes * cantidad) + cantidadIncompleto;
             document.getElementById('total').value = total;
+
+            if(total > maxKg){
+                document.querySelector('#total').classList.add('is-invalid');
+            } else {
+                document.querySelector('#total').classList.remove('is-invalid')
+            }
         }
 
         document.getElementById('baldes').addEventListener('input', calculateTotal);
@@ -149,10 +202,22 @@
     });
 </script>
 <script>
+    const U_1LB_A_KG = .453592;
+
     $(document).ready(function() {
         // Escuchar el cambio en el select de despachos
         $('#despacho_id').change(function() {
             var despachoId = $(this).val();
+            if( despachoId && despachoId!==""){
+                $("#detalles").removeClass("d-none");
+                $('#envioDe').text( $(this)[0].selectedOptions[0].getAttribute('data-sender') );
+                $('#para').text( $(this)[0].selectedOptions[0].getAttribute('data-receiber') );
+                $('#observacion').text( $(this)[0].selectedOptions[0].getAttribute('data-observation') );
+                $('#kgAprox').text( '0' );
+            } else {
+                $("#detalles").addClass("d-none");
+            }
+
             if (despachoId) {
                 // Hacer una solicitud AJAX para obtener los detalles de despacho
                 $.ajax({
@@ -170,6 +235,7 @@
 
                         if (response.length > 0) {
                             // Recorrer los datos recibidos y agregar filas a la tabla
+                            let tot_aprox = 0;
                             $.each(response, function(index, detalle) {
                                 var row = '<tr>' +
 
@@ -184,10 +250,24 @@
                                     '</td>' +
                                     '</tr>';
                                 $('#detalleDespachoBody').append(row);
-                            });
 
+                                if(detalle.materia_prima.unidad_medida=='kg'){
+                                    tot_aprox += Number.parseFloat(detalle.cantidad_unidad);
+                                } else if(detalle.materia_prima.unidad_medida=='lb'){
+                                    tot_aprox += ( Number.parseFloat(detalle.cantidad_unidad) * U_1LB_A_KG);
+                                }
+                            });
+                            tot_aprox = Number.parseFloat(tot_aprox).toFixed(2);
+                            $('#kgAprox').text( tot_aprox );
+                            console.log('esperado', tot_aprox, 'kg.');
+                            if(tot_aprox > 0){
+                                document.querySelector('#despacho_id').classList.remove('is-invalid');
+                            } else {
+                                document.querySelector('#despacho_id').classList.add('is-invalid');
+                            }
                         } else {
                             console.log('No llegan datos.');
+                            document.querySelector('#despacho_id').classList.add('is-invalid');
                         }
                     },
                     error: function(xhr, status, error) {
@@ -197,11 +277,131 @@
             } else {
                 // Limpiar la tabla si no se selecciona ningún despacho
                 $('#detalleDespachoBody').empty();
+                document.querySelector('#despacho_id').classList.add('is-invalid');
                 console.log('No se ha seleccionado un despacho.');
             }
+
+            // validar
+            /* const kgAprox = Number.parseFloat( $('#kgAprox').text() );
+            console.log(kgAprox);
+
+            if(kgAprox > 0){
+                document.querySelector('#despacho_id').classList.add('is-invalid');
+            } else {
+                document.querySelector('#despacho_id').classList.remove('is-invalid');
+            } */
         });
 
         // Trigger para cargar detalles si hay un despacho seleccionado inicialmente
         $('#despacho_id').trigger('change');
+
+        $('form').submit(function(event) {
+            // validaciones antes de enviar el formulario
+            let errors = false;
+            let str_errores = '';
+            if($('#despacho_id').val()==""){
+                errors = true;
+                str_errores += `<li>No se ha seleccionado materia prima.</li>`;
+                document.querySelector('#despacho_id').classList.add('is-invalid');
+            }
+            const totalAprox = Number.parseFloat( $('#kgAprox').text() );
+            //console.log('max', totalAprox);
+            if(0 >= totalAprox){
+                errors = true;
+                str_errores += `<li>La materia prima recibida no contiene registros, seleccione otro</li>`;
+                document.querySelector('#despacho_id').classList.add('is-invalid');
+            }
+
+            const inSalieron = document.querySelector('#baldes');
+            const inKg = document.querySelector('#cantidad');
+            const outTotal = document.querySelector('#total');
+
+            if(inSalieron.value == ''){
+                errors = true;
+                str_errores += `<li>Cantidad de tachos no debe estar vacía.</li>`;
+                inSalieron.classList.add('is-invalid');
+            }
+            if(inKg.value == ''){
+                errors = true;
+                str_errores += `<li>Cantidad de <b>Kg</b> no debe estar vacía.</li>`;
+                inKg.classList.add('is-invalid');
+            }
+            if(outTotal.value > Number.parseFloat( $('#kgAprox').text() ) ){
+                errors = true;
+                str_errores += `<li>El peso total excede el máximo permitido en Kg.</li>`;
+                outTotal.classList.add('is-invalid');
+            }
+
+
+            if(errors==false){
+                console.log('LISTO PARA ENVIAR');
+                $('form').submit();
+            } else {
+                event.preventDefault();
+                event.stopPropagation();
+                Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        html: str_errores,
+                        //text: 'La cantidad ingresada excede los límites disponibles.',
+                        confirmButtonColor: '#3085d6',
+                        confirmButtonText: 'Aceptar'
+                    });
+            }
+        });
+
+        $('#baldes').change((evt) => {
+            //console.log($('#baldes').val(), $('#baldes').val() == '');
+            //$('form').validate();
+            if($('#baldes').val() == ''){
+                document.querySelector('#baldes').classList.add('is-invalid');
+            } else {
+                document.querySelector('#baldes').classList.remove('is-invalid');
+                if(0 >= $('#baldes').val()){
+                    $('#baldes').val('1');
+                } //else if($('#baldes').val() <= )
+            }
+        });
+        $('#cantidad').change((evt) => {
+            //console.log($('#baldes').val(), $('#baldes').val() == '');
+            //$('form').validate();
+            if($('#cantidad').val() == ''){
+                document.querySelector('#cantidad').classList.add('is-invalid');
+            } else {
+                document.querySelector('#cantidad').classList.remove('is-invalid');
+                if(0 >= $('#cantidad').val()){
+                    $('#cantidad').val('1');
+                }
+            }
+        });
+        $('#cantidad_incompleto').change((evt) => {
+            if($('#incompleto').checked){
+                document.querySelector('#cantidad_incompleto').classList.remove('is-invalid');
+            } else {
+                if($('#cantidad_incompleto').val() == ''){
+                    document.querySelector('#cantidad_incompleto').classList.add('is-invalid');
+                } else {
+                    document.querySelector('#cantidad_incompleto').classList.remove('is-invalid');
+                    if(0 >= $('#cantidad_incompleto').val()){
+                        $('#cantidad_incompleto').val('.1');
+                    }
+                }
+            }
+        });
+
+        /* $('#baldes').change((evt) => {
+            //console.log( $('#cantidad').val() == '');
+            //$('form').validate();
+            if( $('#cantidad').val() !== '' ){
+                const number = Number($('#cantidad').val());
+                if(!isNaN(number)){
+                    if(number > 0 && number <= Number.parseFloat( $('#kgAprox').text() )){
+                        document.querySelector('#baldes').classList.remove('is-invalid');
+                    } else {
+                        document.querySelector('#baldes').classList.add('is-invalid');
+                    }
+                }
+            }
+        }); */
     });
 </script>

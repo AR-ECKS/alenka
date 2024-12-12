@@ -22,7 +22,7 @@
                     <p class="card-text">
                     <div class="author">
                       <a href="#">
-                      <img src="{{ asset('storage').'/'.produccion->imagen}}" alt="">
+                      <img src="{{-- asset('storage').'/'.produccion->imagen--}}" alt="NO PROD IMG">
 
                         <h5 class="title mt-3">{{ $produccion->id }}</h5>
                       </a>
