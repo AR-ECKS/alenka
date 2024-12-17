@@ -27,7 +27,7 @@ class DespachoController extends Controller
 
         if (in_array(1, $roles) || in_array(2, $roles)) {
             // Usuarios con rol ID 1 o 2 ven todos los despachos
-            $despachos = Despacho::get();
+            $despachos = Despacho::orderBy('id', 'desc')->get();
         } else {
             // Otros usuarios solo ven los despachos de hoy
             $despachos = Despacho::whereDate('fecha', $today)->get();
@@ -73,10 +73,13 @@ class DespachoController extends Controller
         $users = User::with('roles')->where('tipo', 1)->get(); // Cargar los usuarios con sus roles
 
         // Filtrar materias primas que pertenecen a categoría_id = 1
-        $materia_primas = Materia_prima::whereHas('subcategoria', function ($query) {
+        $materia_primas = Materia_prima::/* whereHas('subcategoria', function ($query) {
             $query->where('categoria_id', 1);
-        })->get();
-        return view('admin.despacho.create', compact('codigo', 'users', 'materia_primas'));
+        }) */
+       where('subcategoria_id', 1)->get();
+
+       $sabores = include(app_path(). '/dataCustom/sabores.php');
+        return view('admin.despacho.create', compact('codigo', 'users', 'materia_primas', 'sabores'));
     }
 
     public function creates()
@@ -113,6 +116,7 @@ class DespachoController extends Controller
         // Validar y convertir la fecha antes de la validación
         $request->validate([
             'codigo' => 'required|string|max:50',
+            'sabor' => 'required|string|max:255',
             'fecha' => 'required|date_format:d-M-Y', // Asegura que la fecha tenga el formato correcto
             'receptor' => 'required|exists:users,id',
             'observacion' => 'nullable|string|max:255',
@@ -136,6 +140,7 @@ class DespachoController extends Controller
             // Crear el despacho con la fecha convertida y el tipo determinado
             $despacho = Despacho::create([
                 'codigo' => $request->codigo,
+                'sabor' => $request->sabor,
                 'fecha' => $fecha_formato_db,
                 'user_id' => $user_id,
                 'observacion' => $request->observacion,

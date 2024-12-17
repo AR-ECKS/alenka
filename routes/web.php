@@ -14,6 +14,8 @@ use App\Http\Controllers\admin\DespachoController;
 use App\Http\Controllers\admin\ProcesoController;
 use App\Models\Proceso;
 
+use App\Http\Controllers\admin\PreSalidaMolinoController;
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -102,7 +104,12 @@ Route::middleware('auth')->group(function () {
     Route::resource('admin/produccion', ProduccionController::class);
     Route::get('admin/produccion/{produccion}/deleted', [ProduccionController::class, 'reingresar'])->name('produccion.reingresar');
 
+    // mine
+    Route::get('admin/pre_salida_molino/{id_proceso}', [PreSalidaMolinoController::class, 'index'])->name('preSalidaMolino');
 });
+
+// api
+Route::get('admin/get_salidas_molino/{fecha}', [ProduccionController::class, 'get_salidas_by_date']);
 
 require __DIR__.'/auth.php';
 

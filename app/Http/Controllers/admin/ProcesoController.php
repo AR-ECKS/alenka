@@ -21,7 +21,7 @@ class ProcesoController extends Controller
 
     public function index(Request $request)
     {
-        $proceso  = Proceso::get();
+        $proceso  = Proceso::orderBy('fecha', 'desc')->get();
         return view('admin.proceso.index', compact('proceso'));
     }
 

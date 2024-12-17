@@ -11,6 +11,7 @@ use Carbon\Carbon;
 use App\Models\Despacho;
 use App\Models\User;
 use App\Models\Proceso;
+use App\Models\PreSalidaMolinos;
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
@@ -22,7 +23,11 @@ class ProduccionController extends Controller
     public function index(Request $request)
     {
         $produccion  = Produccion::get();
-        return view('admin.produccion.index', compact('produccion'));
+
+        $listas_fecha = PreSalidaMolinos::where('estado', 1)
+            ->groupBy('fecha')
+            ->get();
+        return view('admin.produccion.index', compact('produccion', 'listas_fecha'));
     }
 
     public function creates($id)
@@ -172,5 +177,41 @@ class ProduccionController extends Controller
     {
        Produccion::where('id', $id)->update(['estado' => '1']);
         return redirect('admin/produccion')->with('correcto', 'Produccion deleted!');
+    }
+
+    public function get_salidas_by_date($fecha = ''){
+        $todo = PreSalidaMolinos::where('estado', 1)
+            ->where('fecha', $fecha)
+            ->orderBy('id_user', 'asc')
+            ->orderBy('turno', 'asc')
+            ->get();
+
+        $all = [];
+        foreach($todo as $t){
+            $main = [
+                'id' => $t->id,
+                'codigo' => $t->codigo,
+                'fecha' => $t->fecha,
+                'turno' => $t->turno,
+                'observacion' => $t->observacion,
+                'baldes' => $t->baldes,
+                'cantidad' => $t->cantidad,
+                'nombre' => $t->recepcionista->username,
+                'maquina' => $t->recepcionista->maquina,
+                'sabor' => $t->proceso->despacho->sabor
+                /* 'id' => $t->
+                'id' => $t->
+                'id' => $t->
+                'id' => $t->
+                'id' => $t->
+                'id' => $t-> */
+            ];
+            array_push($all, $main );
+        }
+        return response()->json([
+            'success' => true,
+            'message' => 'Se recuperaron '. count($todo) .' registros',
+            'data' => $all
+        ]);
     }
 }

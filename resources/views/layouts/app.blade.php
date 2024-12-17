@@ -21,7 +21,7 @@
       {{-- cards --}}
       <link rel="stylesheet" type="text/css"
       href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
-  <link href="https://fonts.googleapis.com/css?family=Raleway:100,200,400,500,600" rel="stylesheet" type="text/css">
+    <link href="https://fonts.googleapis.com/css?family=Raleway:100,200,400,500,600" rel="stylesheet" type="text/css">
     <!--     Fonts and icons     -->
     <link rel="stylesheet" type="text/css"
         href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Roboto+Slab:400,700|Material+Icons" />
@@ -37,6 +37,9 @@
     <link rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.3.0/css/all.min.css"rossorigin="anonymous"
         referrerpolicy="no-referrer" />
+
+    <!-- STYLE CUSTOM -->
+    @stack('custom_css')
 </head>
 
 <body>
@@ -87,21 +90,20 @@
 
         @extends('adminlte::page')
         @section('right-sidebar')
-        <!-- Contenido para el sidebar derecho -->
-        <div class="p-3">
-            <h5>Contenido para el sidebar derecho</h5>
-            <p>Aquí puedes poner cualquier contenido que desees mostrar en el sidebar derecho.</p>
-        </div>
-    @endsection
+            <!-- Contenido para el sidebar derecho -->
+            <div class="p-3">
+                <h5>Contenido para el sidebar derecho</h5>
+                <p>Aquí puedes poner cualquier contenido que desees mostrar en el sidebar derecho.</p>
+            </div>
+        @endsection
 
     </div>
 
     <!-- Scripts -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-
+    {{-- <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script> --}}
+    <script src="{{ asset('js/jquery.js') }}"></script>
     <script src="{{ asset('js/app.js') }}"></script>
     <script src="{{ asset('js/ajax.js') }}"></script>
-    <script src="{{ asset('js/jquery.js') }}"></script>
     <script src="{{ asset('js/sweetalert.js') }}"></script>
     {{-- DATATABLES --}}
     <script src="{{ asset('js/cdnDatatables.js') }}"></script>
@@ -164,6 +166,11 @@
     <audio id="pregunta">
         <source src="{{ asset('sound/pregunta.mp3') }}" type="audio/mpeg">
     </audio>
+
+    <!-- SCRIPT CUSTOM -->
+    {{-- <link rel="stylesheet" href="{{ asset('libs/bootstrap-5.3.3-dist/js/bootstrap.min.js') }}"> --}}
+
+    @stack('custom_js')
 
 </body>
 

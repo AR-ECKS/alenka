@@ -11,7 +11,8 @@
                     <option value="{{ $despacho->id }}" {{ isset($proceso) && $proceso->despacho_id == $despacho->id ? 'selected' : '' }}
                         data-sender="{{ $despacho->user->username}}"
                         data-receiber="{{ $despacho->receptor_u->username}}"
-                        data-observation="{{ $despacho->observacion }}">
+                        data-observation="{{ $despacho->observacion }}"
+                        data-flavor="{{ $despacho->sabor }}">
                         {{ $despacho->codigo }}
                     </option>
                 @endforeach
@@ -50,6 +51,7 @@
 
                         </div>
                         <div class="card-description">
+                            <b>Sabor:</b> <span id="sabors"></span> <br>
                             <b>Envio de:</b> <span id="envioDe"></span> <br>
                             <b>Para:</b> <span id="para"></span> <br>
                             <b>Observación</b> <span id="observacion"></span> <br>
@@ -125,26 +127,7 @@
                     <input type="text" class="form-control" id="total" name="total" value="{{ isset($proceso->total) ? $proceso->total : '' }}" readonly>
                 </div>
             </div>
-            <div class="col-sm-6">
-                <div class="input-group mb-2">
-                    <div class="input-group-prepend">
-                        <div class="input-group-text"><i class="fas fa-user-edit" style="padding-right:5px"></i><b>{{ 'Sabor' }}</b></div>
-                    </div>
-                    <input type="text" class="form-control" id="id_sabor" name="id_sabor" value="{{-- isset($proceso->total) ? $proceso->total : '' --}}">
-                    {{-- <select class="form-control" id="nombre_sabor" name="id_sabor" required>
-                        <option value="" disabled selected>Por favor seleccione una máquina</option>
-                            <option value="1">Máquina 1</option>
-                            <option value="2">Máquina 2</option>
-                            <option value="3">Máquina 3</option>
-                            <option value="4">Máquina 4</option>
-                            <option value="5">Máquina 5</option>
-                            <option value="6">Máquina 6</option>
-                            <option value="7">Máquina 7</option>
-                            <option value="8">Máquina 8</option>
-                            <option value="9">Máquina 9</option>
-                    </select> --}}
-                </div>
-            </div>
+
 
 
             <div class="col-sm-12">
@@ -213,6 +196,7 @@
                 $('#envioDe').text( $(this)[0].selectedOptions[0].getAttribute('data-sender') );
                 $('#para').text( $(this)[0].selectedOptions[0].getAttribute('data-receiber') );
                 $('#observacion').text( $(this)[0].selectedOptions[0].getAttribute('data-observation') );
+                $('#sabors').text( $(this)[0].selectedOptions[0].getAttribute('data-flavor') );
                 $('#kgAprox').text( '0' );
             } else {
                 $("#detalles").addClass("d-none");

@@ -44,7 +44,7 @@
                   </a>
                 </div> --}}
                         <br><br><br>
-                        <div class="tab-content">
+                        {{-- <div class="tab-content">
                             <div class="table-responsive-xl">
 
 
@@ -136,6 +136,54 @@
 
 
 
+                        </div> --}}
+                    </div>
+
+                    <div class="card-body p-3">
+                        <h4 class="text-center">VER SALIDAS DE MOLINO</h4>
+                        <div class="row">
+                            <div class="col-6">
+                                <div class="input-group mb-2">
+                                    <div class="input-group-prepend">
+                                        <label class="input-group-text" for="fecha">
+                                            <i class="fas fa-calendar pe-1"></i>
+                                            <b>Fecha</b>
+                                        </label>
+                                    </div>
+                                    <select class="form-control" id="fecha">
+                                        <option value="">Seleccione</option>
+                                        @foreach ($listas_fecha as $fec)
+                                            <option value="{{$fec->fecha}}">{{ $fec->fecha }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="Salida" class="d-none">
+                            <div class="tab-content">
+                                <div class="table-responsive-xl">
+                                    <table class=" table-sm text-sm table-striped">
+                                        <thead>
+                                            <tr>
+                                                <th>#</th>
+                                                <th>Fecha</th>
+                                                <th>Turno</th>
+                                                <th>Sabor</th>
+                                                <th>Baldes</th>
+                                                <th>Cantidad</th>
+                                                <th>Nombre</th>
+                                                <th>Máquina</th>
+                                                <th>Firma operador</th>
+                                                <th>para picar</th>
+                                                <th>para sernir</th>
+                                                <th>Observaciones</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="SalidaRegistros"></tbody>
+                                    </table>
+
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -180,6 +228,67 @@
                 },
 
             });
+
+            document.querySelector('#fecha').addEventListener('change', (ev) => {
+                console.log('se ejecuta');
+
+                loadDataDemo(ev.target.value);
+            })
         });
+
+        const url = "{{asset('admin/get_salidas_molino')}}";
+        function loadDataDemo(actual){
+            document.querySelector('#SalidaRegistros').innerHTML = '';
+            //const actual = $("#SalidaRegistros").val();
+            const newURL = url + '/'+ actual;
+            console.log('prepear',actual, newURL);
+            if(actual!==''){
+                fetch(newURL)
+                .then(res => res.json() )
+                .then( res => {
+
+                    if(res.success){
+                        document.querySelector('#Salida').classList.remove('d-none');
+                       /*  Swal.fire({
+                            position: "center",
+                            icon: "success",
+                            title: "Exito al solicitar de fecha "+ actual,
+                            text: res.message,
+                            showConfirmButton: false,
+                            timer: 1500
+                        }); */
+                        if(res.data.length > 0){
+                            res.data.forEach(element => {
+                                console.log(element);
+                                document.querySelector('#SalidaRegistros').innerHTML += `<tr>
+                                    <td>${element.id}</td>
+                                    <td>${element.fecha}</td>
+                                    <td>${element.turno}</td>
+                                    <td>${element.sabor}</td>
+                                    <td>${element.baldes}</td>
+                                    <td>${element.cantidad}</td>
+                                    <td>${element.nombre}</td>
+                                    <td>${element.maquina}</td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+
+                                    <td>${element.observacion==null? '-': element.observacion}</td>
+
+                                </tr>`;
+                            });
+                        } else {
+                            document.querySelector('#Salida').classList.add('d-none');
+                        }
+                    } else {
+                        document.querySelector('#Salida').classList.add('d-none');
+                    }
+                })
+                .catch( err => {
+                    console.error('ocurrio error al solicitar'+ err);
+                    document.querySelector('#Salida').classList.add('d-none');
+                });
+            }
+        }
     </script>
 @endsection

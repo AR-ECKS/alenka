@@ -25,7 +25,7 @@ class Despacho extends Model
      *
      * @var array
      */
-    protected $fillable = ['codigo', 'observacion', 'fecha', 'receptor', 'user_id', 'salida_esperada', 'total','tipo'];
+    protected $fillable = ['codigo', 'sabor', 'observacion', 'fecha', 'receptor', 'user_id', 'salida_esperada', 'total','tipo'];
 
     function user()
     {

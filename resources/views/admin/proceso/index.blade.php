@@ -91,6 +91,14 @@
                                                                         <i class="fas fa-sitemap"></i> Enviar a producción
                                                                     </a>
                                                                 @endcan
+
+                                                                <a href="{{ route('preSalidaMolino', $item->id) }}"
+                                                                    title="View Proceso" class="dropdown-item"
+                                                                    data-toggle="tooltip" data-placement="top"
+                                                                    title="Ver detalles">
+                                                                    <i class="fas fa-sitemap"></i> Asignar salida producción
+                                                                </a>
+
                                                                 @can('ver_preparacion')
 
                                                                     <a href="{{ route('proceso.show', $item->id) }}"
@@ -163,7 +171,7 @@
             lengthMenu: [10, 25, 50],
             order: [
 
-                [3, "asc"],
+                /* [3, "asc"], */
             ],
             language: {
                 decimal: "",

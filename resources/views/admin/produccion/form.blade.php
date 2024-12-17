@@ -1,38 +1,11 @@
-    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-
+    {{-- <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet"> --}}
+@push('custom_css')
+    <link rel="stylesheet" href="{{ asset('libs/bootstrap-5.3.3-dist/css/bootstrap.min.css') }}">
+    @livewireStyles
+@endpush
     <div class="row">
-        <div class="col-sm-4">
-            <div class="input-group mb-2">
-                <div class="input-group-prepend">
-                    <div class="input-group-text"><i class="fas fa-user-edit" style="padding-right:5px"></i><b>Sabor</b>
-                    </div>
-                </div>
-                <select class="form-control" id="sabor" name="sabor" required>
-                    <option value="">Seleccionar...</option>
-                    <option value="CAJA BICO STEVIA">BICO STEVIA</option>
-                    <option value="CAJA BICO CHAMAIRO">BICO CHAMAIRO</option>
-                    <option value="CAJA BICO MENTA 3 EN 1">BICO MENTA 3 EN 1</option>
-                    <option value="CAJA BICO MENTA">BICO MENTA</option>
-                    <option value="CAJA BICO CAFÉ 3 EN 1">BICO CAFÉ 3 EN 1</option>
-                    <option value="CAJA BICO CAFÉ">BICO CAFÉ</option>
-                    <option value="CAJA BICO LIMÓN">BICO LIMÓN</option>
-                    <option value="CAJA BICO STEVIA BLANCA">BICO STEVIA BLANCA</option>
-                    <option value="CAJA EUCALIPTO">EUCALIPTO</option>
-                    <option value="CAJA MARACUYÁ">MARACUYÁ</option>
-                    <option value="CHICLE">CHICLE</option>
-                    <option value="BANANA">BANANA</option>
-                    <option value="FRUTILLA">FRUTILLA</option>
-                    <option value="CEDRÓN">CEDRÓN</option>
-                    <option value="CHIRIMOYA">CHIRIMOYA</option>
-                    <option value="DURAZNO">DURAZNO</option>
-                    <option value="POMELO">POMELO</option>
-                    <option value="FUSIÓN DE FRUTAS">FUSIÓN DE FRUTAS</option>
-                    <option value="MANGO">MANGO</option>
-                </select>
-            </div>
-        </div>
 
-        <div class="col-sm-3">
+        <div class="col-sm-4">
             <div class="input-group mb-2">
                 <div class="input-group-prepend">
                     <div class="input-group-text">
@@ -47,7 +20,7 @@
 
 
 
-        <div class="col-sm-2">
+        <div class="col-sm-4">
             <div class="input-group mb-2">
                 <div class="input-group-prepend">
                     <div class="input-group-text"><i class="fas fa-calendar-alt"
@@ -58,7 +31,7 @@
             </div>
         </div>
 
-        <div class="col-sm-3">
+        <div class="col-sm-4">
             <div class="input-group mb-2">
                 <div class="input-group-prepend">
                     <div class="input-group-text"> <i class="fas fa-user-edit"
@@ -198,7 +171,13 @@
         </button>
     </div>
 
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    {{-- INIT CUSTOM LIVEWIRE --}}
+    {{-- <div class="row"> --}}
+        {{-- @livewire('producciones-index', ['id_proceso' => $proceso->id]) --}}
+    {{-- </div> --}}
+    {{-- END CUSTOM LIVEWIRE --}}
+
+    {{-- <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script> --}}
 
     <script>
         $(document).ready(function() {
@@ -412,3 +391,16 @@
 
         });
     </script>
+@push('custom_js')
+    {{-- <script src="{{asset('js/jquery.js')}}"></script> --}}
+
+    @livewireScripts
+    <script>
+        document.addEventListener('livewire:load', function() {
+            console.log('LOAD SUCCESSFULLY');
+            Livewire.on('mensaje',(sms) => {
+                console.log(sms);
+            })
+        });
+    </script>
+@endpush

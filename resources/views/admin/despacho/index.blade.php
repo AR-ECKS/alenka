@@ -7,6 +7,7 @@
                     position: "center",
                     icon: "success",
                     title: "Operación Realizada con éxito",
+                    text: "{{ session('correcto')}}",
                     showConfirmButton: false,
                     timer: 1500
                 });
@@ -21,6 +22,7 @@
                     position: "center",
                     icon: "error",
                     title: "ocurrio un error",
+                    text: "{{ session('error')}}",
                     showConfirmButton: false,
                     timer: 1500
                 });

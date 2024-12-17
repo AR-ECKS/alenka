@@ -32,6 +32,9 @@
                                                     <b> Registrado el:</b>
                                                     {{ $despacho->fecha }}
                                                     <br>
+                                                    <b>Sabor:</b>
+                                                    {{ $despacho->sabor }}
+                                                    <br>
                                                     <b> La envió:</b>
                                                     {{ $despacho->user->name }}
                                                     <br>

@@ -1,6 +1,6 @@
 <div class="row">
 
-    <div class="col-sm-4">
+    <div class="col-sm-6">
         <div class="input-group mb-2">
             <div class="input-group-prepend">
                 <div class="input-group-text">
@@ -20,19 +20,10 @@
 
         </div>
     </div>
-    <div class="col-sm-4">
-        <div class="input-group mb-2">
-            <div class="input-group-prepend">
-                <div class="input-group-text">
-                    <i class="fas fa-user-edit" style="padding-right:5px"></i><b>{{ 'Codigo' }}</b>
-                </div>
-            </div>
-            <input type="text" class="form-control" maxlength="50" id="codigo" name="codigo" readonly
-                value="{{ isset($codigo) ? $codigo : '' }}">
-        </div>
-    </div>
 
-    <div class="col-sm-4">
+
+
+    <div class="col-sm-6">
         <div class="input-group mb-2">
             <div class="input-group-prepend">
                 <div class="input-group-text">
@@ -41,6 +32,36 @@
             </div>
             <input type="text" class="form-control" id="fecha" name="fecha"
                 value="{{ \Carbon\Carbon::now()->format('d-M-Y') }}" readonly>
+        </div>
+    </div>
+
+    <div class="col-sm-6">
+        <div class="input-group mb-2">
+            <div class="input-group-prepend">
+                <div class="input-group-text">
+                    <i class="fas fa-user-edit" style="padding-right:1px"></i><b>{{ 'Sabor' }}</b>
+                </div>
+            </div>
+            <select class="form-control" id="sabor" name="sabor" required>
+                <option value="" disabled selected>Por favor seleccione el sabor de salida</option>
+                @foreach ($sabores as $sabor)
+                    <option value="{{ $sabor }}" > {{$sabor}} </option>
+                @endforeach
+
+            </select>
+
+        </div>
+    </div>
+
+    <div class="col-sm-6">
+        <div class="input-group mb-2">
+            <div class="input-group-prepend">
+                <div class="input-group-text">
+                    <i class="fas fa-user-edit" style="padding-right:5px"></i><b>{{ 'Codigo' }}</b>
+                </div>
+            </div>
+            <input type="text" class="form-control" maxlength="50" id="codigo" name="codigo" readonly
+                value="{{ isset($codigo) ? $codigo : '' }}">
         </div>
     </div>
 
@@ -154,6 +175,7 @@
 </div>
 
 <script>
+    const operation = '{{$formMode}}';
     let carrito = [];
 
     function calcularUnidad(index) {
@@ -347,9 +369,19 @@
         $("form").on('submit', function(evt){
             const data = JSON.stringify(carrito);
             // validaciones del formulario
-            if(data.length == 0){
-                evt.preventDefault();
+            if(operation=='create'){
+                if(carrito.length == 0){
+                    evt.preventDefault();
+                    Swal.fire('Error', 'Sin materias primas para enviar. \nAl menos debe de existir 1 producto en el carrito', 'ERROR');
+                    console.log('no esta completo ', operation);
+                    return;
+                } else {
+                    document.getElementById('carrito').value = JSON.stringify(carrito);
+                    /* evt.preventDefault();
+                    console.log('enviado', carrito); */
+                }
             } else {
+                // en el caso de EDITAR
                 document.getElementById('carrito').value = JSON.stringify(carrito);
             }
             // tu codigo aqui
