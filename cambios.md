@@ -21,3 +21,41 @@
 | cantidad | INT |  | | | la cantida dek producto recibido en kilogramos
 | id_user | INT UNSIGNED |  | | si | usuario que la ultima vez hizo cambios
 | estado | TINYINT | | | | puede ser 1 o 0
+
+
+3. Incluir nueva tabla llamada **proceso_preparacion** 
+
+| nombre | tipo | nulo | pk | fk | comentario |
+|---|---|---|---|---|---|
+| id | INT UNSIGNED |  | si | |
+| codigo | VARCHAR(255) | si |
+| fecha | DATE | si | |
+| total_kg | FLOAT(4) | si | | | 
+| disponible_kg | FLOAT(4) | si | | |  
+| despacho_id | INT UNSIGNED | si | | si | a la tabla **despachos**
+| observacion | VARCHAR(255) | si | | | observaciones de entrega
+| id_user | INT UNSIGNED |  | | si | usuario que la ultima vez hizo cambios (encargado)
+| estado | TINYINT | | | | puede ser 1 o 0
+
+4. Incluir una nuva tabla llamada **detalle_proceso_preparacion** dependiente de **proceso_preparacion**
+
+| nombre | tipo | nulo | pk | fk | comentario |
+|---|---|---|---|---|---|
+| id | INT UNSIGNED |  | si | |
+| kg_balde | FLOAT(4) | si | | | 
+| nro_balde | INT UNSIGNED | si | | |  
+| fecha | DATE | si | |
+| proceso_preparacion_id | INT UNSIGNED | si | | si | a la tabla **despachos**
+| observacion | VARCHAR(255) | si | | | observaciones de entrega
+| id_user | INT UNSIGNED |  | | si | usuario que la ultima vez hizo cambios (encargado)
+| estado | TINYINT | | | | puede ser 1 o 0
+
+5. Incluir una nueva tabla llamada **maquinas**
+
+| nombre | tipo | nulo | pk | fk | comentario |
+|---|---|---|---|---|---|
+| id | INT UNSIGNED |  | si | |
+| nombre | VARCHAR(100) | si | | | 
+| descripcion | VARCHAR(255) | si | | |
+| id_user | INT UNSIGNED |  | | si | usuario que la ultima vez hizo cambios (encargado)
+| estado | TINYINT | | | | puede ser 1 o 0

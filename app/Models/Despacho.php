@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 
 class Despacho extends Model
 {
@@ -32,10 +34,21 @@ class Despacho extends Model
         return $this->belongsTo(User::class);
     }
 
-    function detalle_despachos()
+    function detalle_despachos(): HasMany
     {
-        return $this->hasMany(Detalle_despacho::class);
+        return $this->hasMany(Detalle_despacho::class, 'despacho_id');
     }
+
+    /* public function totalKgAprox(): Attribute {
+        $mater = $this->hasMany(Detalle_despacho::class, 'despacho_id');
+        $total = 0;
+        if($mater){
+            foreach ($mater as $key => $value) {
+                $total += $value->cantidad_unidad;
+            }
+        }
+        return $total;
+    } */
 
     // Relación para el usuario receptor (receptor)
     public function receptor_u()

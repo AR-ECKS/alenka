@@ -27,6 +27,25 @@
             });
         </script>
     @endif
+    {{-- INIT INSERT CUSTOM --}}
+    <div class="container-fluid py-4">
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header p-0 position-relative mt-n5 mx-3 z-index-2 ">
+                        <h3>PREPARACIONES</h3>
+                    </div>
+                    <div class="card-body p-3">
+                        <!-- LIVEWIRE -->
+                        @livewire('proceso-preparacion-index')
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    {{--  END INSERT CUSTOM --}}
+
     <div class="container-fluid py-4">
         <div class="row">
             <div class="col-12">
@@ -48,7 +67,7 @@
 
 
 
-                                <table class="table table-sm text-sm table-striped">
+                                <table class="table table-sm text-sm table-striped" id="table-proceso">
                                     <thead>
                                         <tr>
                                             <th>#</th>
@@ -167,7 +186,7 @@
 
 <script>
     $(document).ready(function() {
-        $(".table").DataTable({
+        $("#table-proceso").DataTable({
             lengthMenu: [10, 25, 50],
             order: [
 
@@ -203,3 +222,42 @@
     });
 </script>
 @endsection
+
+@push('custom_css')
+    @livewireStyles
+@endpush
+
+@push('custom_js')
+    @livewireScripts
+
+    <script>
+        document.addEventListener('livewire:load', function() {
+            //console.log('LOAD SUCCESSFULLY');
+            Livewire.on('mensaje',(sms) =>{
+                console.log(sms);
+            });
+
+            Livewire.on('success',(sms) =>{
+                Swal.fire({
+                    position: "center",
+                    icon: "success",
+                    title: "Operación Realizada con éxito",
+                    text: sms,
+                    showConfirmButton: true,
+                });
+                //console.log(sms);
+            });
+
+            Livewire.on('error',(sms) =>{
+                Swal.fire({
+                    position: "center",
+                    icon: "error",
+                    title: "ocurrio un error",
+                    text: sms,
+                    showConfirmButton: true,
+                });
+                //console.log(sms);
+            })
+        });
+    </script>
+@endpush

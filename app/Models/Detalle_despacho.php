@@ -28,7 +28,7 @@ class Detalle_despacho extends Model
     protected $fillable = ['cantidad_presentacion', 'cantidad_unidad', 'materia_prima_id', 'despacho_id'];
 
     function despacho(){
-        return $this->belongsTo(Despacho::class);
+        return $this->belongsTo(Despacho::class, 'despacho_id');
     }
 
     public function materia_prima()
