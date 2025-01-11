@@ -29,6 +29,26 @@
             });
         </script>
     @endif
+
+    {{-- INIT INSERT CUSTOM --}}
+    <div class="container-fluid py-4">
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header p-0 position-relative mt-n5 mx-3 z-index-2 ">
+                        {{-- <h3>SALIDAS DE MOLINO</h3> --}}
+                    </div>
+                    <div class="card-body p-3">
+                        <!-- LIVEWIRE -->
+                        @livewire('salida-molino-index')
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    {{--  END INSERT CUSTOM --}}
+
     <div class="container-fluid py-4">
         <div class="row">
             <div class="col-12">
@@ -49,7 +69,7 @@
 
 
 
-                                <table class="table table-sm text-sm table-striped">
+                                <table class="table-prod table-sm text-sm table-striped">
                                     <thead>
                                         <tr>
                                             <th>#</th>
@@ -195,7 +215,7 @@
 
     <script>
         $(document).ready(function() {
-            $(".table").DataTable({
+            $(".table-prod").DataTable({
                 lengthMenu: [10, 25, 50],
                 order: [
 
@@ -291,4 +311,5 @@
             }
         }
     </script>
+    @include('livewire.utils-livewire')
 @endsection

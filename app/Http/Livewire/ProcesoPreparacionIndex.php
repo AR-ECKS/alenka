@@ -3,6 +3,7 @@
 namespace App\Http\Livewire;
 
 use Livewire\Component;
+use Livewire\WithPagination;
 
 use App\Models\ProcesoPreparacion;
 use App\Models\DetalleProcesoPreparacion;
@@ -16,8 +17,14 @@ use Carbon\Carbon;
 
 class ProcesoPreparacionIndex extends Component
 {
-
     public $U_1LB_A_KG = .453592;
+
+    use WithPagination;
+    protected $paginationTheme = 'bootstrap';
+
+    protected $listeners = [
+        'eliminar_proceso_preparacion'
+    ];
 
     public function render()
     {
@@ -28,7 +35,8 @@ class ProcesoPreparacionIndex extends Component
     }
 
     private function get_data(){
-        $procesos_prep = ProcesoPreparacion::where('estado', 1)->get();
+        $procesos_prep = ProcesoPreparacion::#where('estado', 1)->get();
+            paginate(5);
         return $procesos_prep;
     }
 
@@ -322,5 +330,23 @@ class ProcesoPreparacionIndex extends Component
         }
 
         return "PR-{$numeroProceso}-{$dia}-{$mes}-{$anio}";
+    }
+
+    public function eliminar_proceso_preparacion($id){
+        $proceso_prep = ProcesoPreparacion::where('id', $id)->first();
+        if($proceso_prep){
+            $proceso_prep->estado = 0;
+            $proceso_prep->save();
+            $this->emit('success', 'Se ha eliminado exitosamente un proceso de preparación');
+        }
+    }
+
+    public function restaurar_proceso_preparacion($id){
+        $proceso_prep = ProcesoPreparacion::where('id', $id)->first();
+        if($proceso_prep){
+            $proceso_prep->estado = 1;
+            $proceso_prep->save();
+            $this->emit('success', 'Se ha restaurado exitosamente un proceso de preparación');
+        }
     }
 }

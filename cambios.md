@@ -59,3 +59,29 @@
 | descripcion | VARCHAR(255) | si | | |
 | id_user | INT UNSIGNED |  | | si | usuario que la ultima vez hizo cambios (encargado)
 | estado | TINYINT | | | | puede ser 1 o 0
+
+6. Incluir una nueva tabla llamada **salidas_de_molino**
+
+| nombre | tipo | nulo | pk | fk | comentario |
+|---|---|---|---|---|---|
+| id | INT UNSIGNED |  | si | |
+| codigo | VARCHAR(255) | si | | crear código autogenerado
+| fecha | DATE |  | |
+| turno | VARCHAR(255) | SI | | | puede ser MAÑANA o TARDE 
+| encargado_id | INT UNSIGNED | | | si | es el que recibe la mezcla a  **users**
+| maquina_id | INT UNSIGNED | | | si | es la maquina asignadas a  **maquinas**
+| sabor | VARCHAR(50) | si | | -- | crear una referencia o tener un lista de php de sabores (INT UNSIGNED)
+| observacion | VARCHAR(255) | si | | | observaciones de entrega
+| total_aprox | FLOAT(4) |  | | | la cantidad aproximada producto recibido en kilogramos
+| id_user | INT UNSIGNED |  | | si | usuario que la ultima vez hizo cambios
+| estado | TINYINT | | | | puede ser 1 o 0
+
+7. Incluir una nueva tabla llamada **detalle_salidas_de_molino**
+
+| nombre | tipo | nulo | pk | fk | comentario |
+|---|---|---|---|---|---|
+| id | INT UNSIGNED |  | si | |
+| salida_de_molino_id | INT UNSIGNED | | |si | 
+| detalle_proceso_preparacion_id | INT UNSIGNED | | |si | 
+| id_user | INT UNSIGNED |  | | si | usuario que la ultima vez hizo cambios
+| estado | TINYINT | | | | puede ser 1 o 0 |

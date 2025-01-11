@@ -268,9 +268,12 @@
                         </tr>
                     </thead>
                     <tbody>
+                        @php
+                            $contador = ($procesos_preparacion->perPage() * $procesos_preparacion->currentPage()) + 1 - $procesos_preparacion->perPage();
+                        @endphp
                         @foreach($procesos_preparacion as $processs)
                             <tr>
-                                <td></td>
+                                <td>{{ $contador++ }}</td>
                                 <td>{{ $processs->codigo }}</td>
                                 <td>{{ $processs->observacion }}</td>
                                 <td>{{ \Carbon\Carbon::parse($processs->fecha)->isoFormat('DD-MM-YYYY')}}</td>
@@ -302,14 +305,24 @@
                                                         <i class="fas fa-bucket"></i> Administración de Baldes
                                                     </a>
                                                 {{-- @endcan --}}
+                                                <a wire:click.prevent="$emit('alerta', 'eliminar_proceso_preparacion', {{ $processs->id }})"
+                                                    class="dropdown-item" data-placement="top"
+                                                    title="Eliminar">
+                                                    <i class="fas fa-trash"></i> Eliminar
+                                                </a>
                                             </div>
                                         </div>
+                                    @elseif($processs->estado == 0)
+                                        <button class="btn-sm btn-dark" wire:click="restaurar_proceso_preparacion({{ $processs->id }})"><i class="fas fa-undo"></i> Restaurar </button>
                                     @endif
                                 </td>
                             </tr>
                         @endforeach
                     </tbody>
                 </table>
+            </div>
+            <div class="d-flex justify-content-center">
+                {{ $procesos_preparacion->links() }}
             </div>
         @else
             <p class="text-danger text-center">No hay registros.</p>
