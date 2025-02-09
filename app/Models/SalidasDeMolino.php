@@ -35,7 +35,7 @@ class SalidasDeMolino extends Model
 
     public function recepcionista()
     {
-        return $this->belongsTo(User::class, 'id_encargado');
+        return $this->belongsTo(User::class, 'encargado_id');
     }
 
     public function maquina()
@@ -45,6 +45,10 @@ class SalidasDeMolino extends Model
 
     public function detalle_salida_molinos(){
         return $this->hasMany(DetalleSalidasDeMolino::class, 'salida_de_molino_id');
+    }
+
+    public function producto_envasado(){
+        return $this->hasOne(ProductosEnvasados::class, 'salida_de_molino_id');
     }
     
 }

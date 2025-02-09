@@ -9,9 +9,12 @@ use App\Models\User;
 use App\Models\Maquina;
 use App\Models\SalidasDeMolino;
 use App\Models\DetalleSalidasDeMolino;
+use App\Models\DetalleProcesoPreparacion;
+use App\Models\ProductosEnvasados;
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
 
@@ -37,7 +40,6 @@ class SalidaMolinoIndex extends Component
 
         $this->LISTA_DE_SABORES = include(app_path(). '/dataCustom/sabores.php');
         $this->LISTA_TURNOS = include(app_path(). '/dataCustom/turnos.php');
-        
         #$this->emit('mensaje', 'FECHA es'. $fechaActual);
     }
 
@@ -52,7 +54,7 @@ class SalidaMolinoIndex extends Component
             'list_mes' => $this->get_meses(),
             'list_dias' => $this->get_dias(),
             'usuarios' => $usuarios,
-            'maquinas' => $maquinas
+            'maquinas' => $maquinas,
         ]);
     }
 
@@ -90,22 +92,26 @@ class SalidaMolinoIndex extends Component
 
     public function get_gestiones(){
         $gestiones = SalidasDeMolino::select(
-            DB::raw('YEAR(fecha) as anio')
+            DB::raw("DATE_FORMAT(fecha, '%Y') as anio")
         )->distinct()
         ->orderBy('anio')
         ->get();
 
-        return collect($gestiones)->push($this->fechaActual->isoFormat('YYYY'))->unique()->sortDesc()->values();
+        return collect($gestiones->map(function($value){
+            return $value->anio;
+        }))->push( $this->fechaActual->isoFormat('YYYY') )->unique()->sortDesc()->values();
     }
 
     public function get_meses(){
         $meses = SalidasDeMolino::select(
-            DB::raw('MONTH(fecha) as mes')
+            DB::raw("DATE_FORMAT(fecha, '%m') as mes")
         )->distinct()
         ->orderBy('mes')
         ->get();
 
-        return collect($meses)->push($this->fechaActual->isoFormat('MM'))->unique()->sort()->values();
+        return collect($meses->map(function( $value){
+            return $value->mes;
+        }))->push($this->fechaActual->isoFormat('MM'))->unique()->sort()->values();
     }
 
     public function get_dias(){
@@ -133,12 +139,12 @@ class SalidaMolinoIndex extends Component
     protected function rules(){
         if($this->operation=='create_salida_molino'){
             return $this->rulesForCreateSalidaMolino();
-        }/*  else if($this->operation=='admin_proccess_preparation'){
-            return $this->rulesForAdminProcessPreparation();
-        } */
+        } else if($this->operation=='edit_salida_molino'){
+            return $this->rulesForEditSalidaMolino();
+        }
         return array_merge(
-            $this->rulesForCreateSalidaMolino()/* ,
-            $this->rulesForCreateProcessPreparation() */
+            $this->rulesForCreateSalidaMolino(),
+            $this->rulesForEditSalidaMolino()
         );
     }
 
@@ -156,6 +162,7 @@ class SalidaMolinoIndex extends Component
     public $LISTA_DETALLE_PREPARACION = [];
     public $LISTA_DETALLE_BALDES_DE_PREPARACION = [];
     public $lista_de_baldes = [];
+    public $cantidad_baldes = 0;
     public function rulesForCreateSalidaMolino(){
         return [
             'codigo' => 'required|unique:salidas_de_molino,codigo|min:10',
@@ -166,6 +173,7 @@ class SalidaMolinoIndex extends Component
             'sabor' => 'required|string',
             'observacion' => 'nullable|string',
             'total_aprox' => 'required|numeric|min:0.1',
+            'cantidad_baldes' => 'required|integer|min:1|max:20'
         ];
     }
 
@@ -206,6 +214,7 @@ class SalidaMolinoIndex extends Component
             'sabor',
             'observacion',
             'total_aprox',
+            'cantidad_baldes'
         ]);
         $this->resetValidation();
     }
@@ -213,6 +222,46 @@ class SalidaMolinoIndex extends Component
     public function save_modal_crear_salida_mol(){
         if($this->operation == 'create_salida_molino'){
             $this->validate();
+            try{
+                DB::beginTransaction();
+
+                $salida_de_molino = new SalidasDeMolino();
+                $salida_de_molino->codigo = $this->codigo;
+                $salida_de_molino->fecha = $this->fecha;
+                $salida_de_molino->turno = $this->turno;
+                $salida_de_molino->encargado_id = $this->encargado_id;
+                $salida_de_molino->maquina_id = $this->maquina_id;
+                $salida_de_molino->sabor = $this->sabor;
+                $salida_de_molino->observacion = (is_null($this->observacion))? '': $this->observacion;
+                $salida_de_molino->total_aprox = round($this->total_aprox, 2);
+                $salida_de_molino->id_user = Auth::id();
+                $salida_de_molino->save();
+
+                foreach($this->lista_de_baldes as $bal_det){
+                    $detalle_salida_molino = new DetalleSalidasDeMolino();
+                    $detalle_salida_molino->salida_de_molino_id = $salida_de_molino->id;
+                    $detalle_salida_molino->detalle_proceso_preparacion_id = $bal_det['id'];
+                    $detalle_salida_molino->id_user = Auth::id();
+                    $detalle_salida_molino->save();
+                }
+
+                $producto = new ProductosEnvasados();
+                $producto->sabor = $this->sabor;
+                $producto->codigo = $this->codigo;
+                $producto->fecha = $this->fecha;
+                $producto->salida_de_molino_id = $salida_de_molino->id;
+                $producto->encargado_id = $this->encargado_id;
+                $producto->maquina_id = $this->maquina_id;
+                $producto->balde_entrada_de_molino = $this->cantidad_baldes;
+                $producto->save();
+
+                DB::commit();
+                $this->emit('success', 'Se ha creado exitosamente la salida de molino');
+                $this->close_modal_crear_salida_mol();
+            } catch(\Exception $e){
+                DB::rollBack();
+                $this->emit('error', 'Error al crear la nueva salida de molino. '. $e->getMessage());
+            }
         }
     }
 
@@ -220,6 +269,8 @@ class SalidaMolinoIndex extends Component
         $this->emit('mensaje', 'Se actualizo es'. $this->sabor);
         $this->lista_de_baldes = [];
         $this->det_despacho_id = "";
+        $this->on_change_det_despacho_id();
+        $this->actualizar_total_kg_aprox();
         if(is_null($this->sabor) || $this->sabor==""){
             $this->LISTA_DETALLE_PREPARACION = [];
         } else {
@@ -234,6 +285,7 @@ class SalidaMolinoIndex extends Component
                 ->join('proceso_preparacion', 'proceso_preparacion.id', '=', 'detalle_proceso_preparacion.proceso_preparacion_id')
                 ->join('despachos', 'despachos.id', '=', 'proceso_preparacion.despacho_id')
                 ->where('despachos.sabor', '=', $this->sabor)
+                ->whereNull('detalle_salidas_de_molino.detalle_proceso_preparacion_id')
                 ->groupBy('detalle_proceso_preparacion.proceso_preparacion_id')
                 ->get()->toArray();
         }
@@ -244,7 +296,15 @@ class SalidaMolinoIndex extends Component
         if(is_null($this->det_despacho_id) || $this->det_despacho_id==""){
             $this->LISTA_DETALLE_BALDES_DE_PREPARACION = [];
         } else {
-            $this->LISTA_DETALLE_BALDES_DE_PREPARACION = DetalleSalidasDeMolino::select(
+            $excluidos = [];
+            if(count($this->lista_de_baldes) > 0){
+                foreach ($this->lista_de_baldes as $bal) {
+                    $excluidos[] = $bal['id'];
+                    #$this->emit('mensaje', 'es'. $bal['id']);
+                }
+            }
+
+            $consulta = DetalleSalidasDeMolino::select(
                     'proceso_preparacion.id AS id_proceso_preparacion',
                     'proceso_preparacion.codigo',
                     'proceso_preparacion.fecha',
@@ -260,13 +320,146 @@ class SalidaMolinoIndex extends Component
                 ->join('proceso_preparacion', 'proceso_preparacion.id', '=', 'detalle_proceso_preparacion.proceso_preparacion_id')
                 #->join('despachos', 'despachos.id', '=', 'proceso_preparacion.despacho_id')
                 ->where('proceso_preparacion.id', '=', $this->det_despacho_id)
-                ->get()->toArray();
+                ->whereNull('detalle_salidas_de_molino.detalle_proceso_preparacion_id');
+                
+                # excluir los baldes que esren estado 0
+                $consulta->where('detalle_proceso_preparacion.estado', '<>', 0);
+            
+                if(count($this->lista_de_baldes) > 0){
+                    $consulta->whereNotIn('detalle_proceso_preparacion.id', $excluidos);
+                }
+            $consulta->orderBy('detalle_proceso_preparacion.nro_balde');
+            
+            $this->LISTA_DETALLE_BALDES_DE_PREPARACION = $consulta->get()->toArray();
         }
     }
 
     public $det_despacho_id;
     public $id_balde_detalle_proceso_preparacion;
     public function agregar_balde(){
-        
+        $this->validate([
+            'det_despacho_id' => 'required',
+            'id_balde_detalle_proceso_preparacion' => 'required'
+        ]);
+
+        /* $balde = [
+            'detalle_proceso_preparacion_id' => $this->id_balde_detalle_proceso_preparacion,
+            ''
+        ]; */
+
+        $balde = DetalleProcesoPreparacion::where('id', $this->id_balde_detalle_proceso_preparacion)->first();
+        if($balde){
+            $this->lista_de_baldes[] = $balde;
+            $this->limpiar_balde();
+            $this->on_change_det_despacho_id();
+            $this->actualizar_total_kg_aprox();
+        }
     }
+
+    public function limpiar_balde(){
+        $this->reset([
+            'det_despacho_id',
+            'id_balde_detalle_proceso_preparacion'
+        ]);
+        $this->resetValidation([
+            'det_despacho_id',
+            'id_balde_detalle_proceso_preparacion'
+        ]);
+    }
+
+    public function actualizar_total_kg_aprox(){
+        $total_aprox_kg = 0;
+        if(count($this->lista_de_baldes) > 0){
+            foreach($this->lista_de_baldes as $bald){
+                $total_aprox_kg += $bald['kg_balde'];
+            }
+        }
+        $this->total_aprox = $total_aprox_kg;
+        $this->cantidad_baldes = count($this->lista_de_baldes);
+    }
+
+    public function quitar_balde($id_balde){
+        #buscar indice y borrar
+        $idx = array_search( $id_balde, array_column($this->lista_de_baldes, 'id') );
+        if($idx!==false){
+            array_splice($this->lista_de_baldes, $idx, 1);
+            $this->on_change_det_despacho_id();
+            $this->actualizar_total_kg_aprox();
+        }
+        $this->emit('mensaje', 'index is'. $idx);
+    }
+
+    /* ******************************************************************************************* */
+
+    public $ed_id;
+    public $ed_codigo;
+    public $ed_fecha;
+    public $ed_turno;
+    public $ed_encargado_id;
+    public $ed_maquina_id;
+    public $ed_sabor;
+    public $ed_observacion;
+    public $ed_total_aprox;
+    public $ed_cantidad_baldes;
+
+    public function rulesForEditSalidaMolino(){
+        return [
+            'ed_id' => 'required|exists:salidas_de_molino,id',
+            'ed_codigo' => [
+                    'required',
+                    Rule::unique('salidas_de_molino', 'codigo')->ignore($this->ed_id),
+                    'min:10'
+                ],
+            'ed_fecha' => 'required|date',
+            'ed_turno' => 'required|string|min:2',
+            'ed_encargado_id' => 'required',
+            'ed_maquina_id' => 'required',
+            'ed_sabor' => 'required|string',
+            'ed_observacion' => 'nullable|string',
+            'ed_total_aprox' => 'required|numeric|min:0.1',
+            'ed_cantidad_baldes' => 'required|integer|min:1|max:20'
+        ];
+    }
+
+    public function open_modal_editar_salida_mol($id_sal_molino){
+        $this->close_modal_crear_salida_mol();
+        $salida_molino = SalidasDeMolino::where('id', $id_sal_molino)->first();
+        if($salida_molino){
+            $this->operation = 'edit_salida_molino';
+            $this->ed_id = $salida_molino->id;
+            $this->ed_codigo = $salida_molino->codigo;
+            $this->ed_fecha = $salida_molino->fecha;
+            $this->ed_turno = $salida_molino->turno;
+            $this->ed_encargado_id = $salida_molino->encargado_id;
+            $this->ed_maquina_id = $salida_molino->maquina_id;
+            $this->ed_sabor = $salida_molino->sabor;
+            $this->ed_observacion = $salida_molino->observacion;
+            $this->ed_total_aprox = $salida_molino->total_aprox;
+            $this->ed_cantidad_baldes = count($salida_molino->detalle_salida_molinos);
+        }
+    }
+
+    public function close_modal_editar_salida_mol(){
+        $this->operation = '';
+        $this->reset([
+            'ed_id',
+            'ed_codigo',
+            'ed_fecha',
+            'ed_turno',
+            'ed_encargado_id',
+            'ed_maquina_id',
+            'ed_sabor',
+            'ed_observacion',
+            'ed_total_aprox',
+            'ed_cantidad_baldes'
+        ]);
+        $this->resetValidation();
+    }
+
+    public function save_modal_editar_salida_mol(){
+        if($this->operation == 'edit_salida_molino'){
+            $this->validate();
+        }
+    }
+
 }

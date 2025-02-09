@@ -13,6 +13,7 @@ use App\Http\Controllers\admin\CompraController;
 use App\Http\Controllers\admin\DespachoController;
 use App\Http\Controllers\admin\ProcesoController;
 use App\Http\Controllers\admin\MaquinaController;
+use App\Http\Controllers\admin\ProductosEnvasadosController;
 use App\Models\Proceso;
 
 use App\Http\Controllers\admin\PreSalidaMolinoController;
@@ -108,6 +109,7 @@ Route::middleware('auth')->group(function () {
     // mine
     Route::get('admin/pre_salida_molino/{id_proceso}', [PreSalidaMolinoController::class, 'index'])->name('preSalidaMolino');
     Route::get('admin/maquina', [MaquinaController::class, 'index'])->name('maquina.index');
+    Route::get('admin/productos_envasados', [ProductosEnvasadosController::class, 'index'])->name('productosEnvasados.index');
 });
 
 // api
