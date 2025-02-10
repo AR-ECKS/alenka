@@ -124,18 +124,23 @@ class ProductoEnvasadoIndex extends Component
     }
 
     public function get_dias(){
-        $inicio = Carbon::createFromDate($this->fechaActual->isoFormat('YYYY'), $this->fechaActual->isoFormat('MM'), 1);
-        $fin = $inicio->copy()->endOfMonth();
+        #$inicio = Carbon::createFromDate($this->fechaActual->isoFormat('YYYY'), $this->fechaActual->isoFormat('MM'), 1);
+        if($this->anio !== "" && $this->mes!== ""){
+            $inicio = Carbon::createFromDate($this->anio, $this->mes, 1);
+            $fin = $inicio->copy()->endOfMonth();
 
-        $todo = CarbonPeriod::create($inicio, $fin)->toArray();
-        $dias = collect($todo)->map(function($fec) {
-            return [
-                #'dia' => $fec->day,
-                'dia' => $fec->isoFormat('DD'),
-                'nombre' => $fec->locale('es')->isoFormat('dddd')
-            ];
-        });
-        return $dias;
+            $todo = CarbonPeriod::create($inicio, $fin)->toArray();
+            $dias = collect($todo)->map(function($fec) {
+                return [
+                    #'dia' => $fec->day,
+                    'dia' => $fec->isoFormat('DD'),
+                    'nombre' => $fec->locale('es')->isoFormat('dddd')
+                ];
+            });
+            return $dias;
+        } else{
+            return [];
+        }
     }
 
     /* ********************** INIT RULES ************************** */
@@ -247,6 +252,10 @@ class ProductoEnvasadoIndex extends Component
                 ->where('tabla_saldo.fecha', '<', $this->producto_envasado_balde->fecha)
                 ->where('tabla_saldo.sabor', $this->producto_envasado_balde->sabor)
                 ->whereNotNull('tabla_saldo.balde_sobro_del_dia')
+                ->where(function($query){
+                    $query->whereNull('productos_envasados.balde_saldo_anterior')
+                    ->orWhere('tabla_saldo.id', $this->producto_envasado_balde->balde_saldo_anterior);
+                })
                 #->whereNull('productos_envasados.balde_saldo_anterior')
                 #->orWhere('tabla_saldo.id', $this->producto_envasado_balde->id)
                 ->get();
