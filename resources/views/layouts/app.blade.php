@@ -171,7 +171,7 @@
     {{-- <link rel="stylesheet" href="{{ asset('libs/bootstrap-5.3.3-dist/js/bootstrap.min.js') }}"> --}}
 
     @stack('custom_js')
-
+    <!-- END CUSTOM -->
 </body>
 
 </html>

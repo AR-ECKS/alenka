@@ -286,6 +286,8 @@ class SalidaMolinoIndex extends Component
                 ->join('despachos', 'despachos.id', '=', 'proceso_preparacion.despacho_id')
                 ->where('despachos.sabor', '=', $this->sabor)
                 ->whereNull('detalle_salidas_de_molino.detalle_proceso_preparacion_id')
+                # sin eliminados
+                ->where('detalle_proceso_preparacion.estado', '<>', 0)
                 ->groupBy('detalle_proceso_preparacion.proceso_preparacion_id')
                 ->get()->toArray();
         }
@@ -314,7 +316,8 @@ class SalidaMolinoIndex extends Component
                     'detalle_proceso_preparacion.fecha AS fecha_det_preparacion',
                     'detalle_proceso_preparacion.observacion AS observacion_det_preparacion',
                     'kg_balde',
-                    'nro_balde'
+                    'nro_balde',
+                    'detalle_proceso_preparacion.estado'
                 )
                 ->rightJoin('detalle_proceso_preparacion', 'detalle_proceso_preparacion.id', '=', 'detalle_salidas_de_molino.detalle_proceso_preparacion_id')
                 ->join('proceso_preparacion', 'proceso_preparacion.id', '=', 'detalle_proceso_preparacion.proceso_preparacion_id')
@@ -324,6 +327,8 @@ class SalidaMolinoIndex extends Component
                 
                 # excluir los baldes que esren estado 0
                 $consulta->where('detalle_proceso_preparacion.estado', '<>', 0);
+                #$consulta->where('detalle_salidas_de_molino.estado', '<>', 0);
+                #$consulta->where('proceso_preparacion.estado', '<>', 0);
             
                 if(count($this->lista_de_baldes) > 0){
                     $consulta->whereNotIn('detalle_proceso_preparacion.id', $excluidos);

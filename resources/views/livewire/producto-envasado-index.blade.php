@@ -1,9 +1,11 @@
 <div>
-    <div class="float-right mt-3">
-        <a type="button" class="btn btn-primary text-white" wire:click="open_modal_crear_salida_mol">
-            <i class="fas fa-database"></i> Nuevo Producto Envasado 
-        </a>
-    </div>
+    @if($operation == '')
+        <div class="float-right mt-3">
+            <a type="button" class="btn btn-primary text-white" wire:click="open_modal_crear_salida_mol">
+                <i class="fas fa-database"></i> Nuevo Producto Envasado 
+            </a>
+        </div>
+    @endif
 
     <br>
     <br>
@@ -180,223 +182,251 @@
                     <button type="button" class="btn btn-primary" wire:click="save_modal_editar_caja">GUARDAR</button>
                 </div>
             </div>
-        @endif
-        <div class="row">
-            <div class="col-md-3">
-                <div class="input-group mb-2">
-                    <div class="input-group-prepend">
-                        <label class="input-group-text" for="anio">
-                            <i class="fas fa-calendar pe-1"></i>
-                            <b>Año</b>
-                        </label>
+        @else
+            {{-- MAIN --}}
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="input-group mb-2">
+                        <div class="input-group-prepend">
+                            <label class="input-group-text" for="anio">
+                                <i class="fas fa-calendar pe-1"></i>
+                                <b>Año</b>
+                            </label>
+                        </div>
+                        <select class="form-control" id="anio" wire:model="anio" wire:change="on_change_anio">
+                            <option value="">Todas las gestiones</option>
+                            @foreach($list_anio as $ges)
+                                <option value="{{ $ges->anio}}">{{ $ges->anio}}</option>
+                            @endforeach
+                        </select>
                     </div>
-                    <select class="form-control" id="anio" wire:model="anio" wire:change="on_change_anio">
-                        <option value="">Todas las gestiones</option>
-                        @foreach($list_anio as $ges)
-                            <option value="{{ $ges->anio}}">{{ $ges->anio}}</option>
-                        @endforeach
-                    </select>
+                </div>
+    
+                <div class="col-md-3">
+                    @if($statusMes)
+                        <div class="input-group mb-2">
+                            <div class="input-group-prepend">
+                                <label class="input-group-text" for="mes">
+                                    <i class="fas fa-calendar pe-1"></i>
+                                    <b>Mes</b>
+                                </label>
+                            </div>
+                            <select class="form-control" id="mes" wire:model="mes" wire:change="on_change_mes">
+                                <option value="">Todos los meses</option>
+                                @foreach($list_mes as $me)
+                                    <option value="{{ $me->mes}}">{{ $me->mes}} - {{ \Carbon\Carbon::create(null, $me->mes)->locale('es')->isoFormat('MMMM') }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    @endif
+                </div>
+    
+                <div class="col-md-3">
+                    @if($statusDia)
+                        <div class="input-group mb-2">
+                            <div class="input-group-prepend">
+                                <label class="input-group-text" for="dia">
+                                    <i class="fas fa-calendar pe-1"></i>
+                                    <b>Día</b>
+                                </label>
+                            </div>
+                            <select class="form-control" id="dia" wire:model="dia">
+                                <option value="">Todas los días</option>
+                                @foreach($list_dias as $di)
+                                    <option value="{{ $di['dia']}}">{{ $di['dia'] . ' - '. $di['nombre']}}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    @endif
                 </div>
             </div>
-
-            <div class="col-md-3">
-                @if($statusMes)
-                    <div class="input-group mb-2">
-                        <div class="input-group-prepend">
-                            <label class="input-group-text" for="mes">
-                                <i class="fas fa-calendar pe-1"></i>
-                                <b>Mes</b>
-                            </label>
-                        </div>
-                        <select class="form-control" id="mes" wire:model="mes" wire:change="on_change_mes">
-                            <option value="">Todos los meses</option>
-                            @foreach($list_mes as $me)
-                                <option value="{{ $me->mes}}">{{ $me->mes}} - {{ \Carbon\Carbon::create(null, $me->mes)->locale('es')->isoFormat('MMMM') }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                @endif
-            </div>
-
-            <div class="col-md-3">
-                @if($statusDia)
-                    <div class="input-group mb-2">
-                        <div class="input-group-prepend">
-                            <label class="input-group-text" for="dia">
-                                <i class="fas fa-calendar pe-1"></i>
-                                <b>Día</b>
-                            </label>
-                        </div>
-                        <select class="form-control" id="dia" wire:model="dia">
-                            <option value="">Todas los días</option>
-                            @foreach($list_dias as $di)
-                                <option value="{{ $di['dia']}}">{{ $di['dia'] . ' - '. $di['nombre']}}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                @endif
-            </div>
-        </div>
-
-        @if(count($productos_envasados) > 0)
-            <div class="table-responsive-xl">
-                <table class="table table-sm text-sm table-striped">
-                    <thead>
-                        <tr>
-                            <th rowspan="2">#</th>
-                            <th rowspan="2" class="text-center border-right">Fecha</th>
-                            <th rowspan="2">Máquina</th>
-                            <th rowspan="2">Nombre</th>
-                            <th rowspan="2">Sabor</th>
-                            <th colspan="4" class="text-center border-left border-right">Baldes</th>
-                            <th colspan="2" class="text-center border-left border-right">Cajas</th>
-                            <th colspan="3" class="text-center border-left border-right">Salidas o cambio</th>
-                            <th colspan="3" class="text-center border-left border-right">Bobinas</th>
-                            <th>Observaciones</th>
-                            <th>Estado</th>
-                            <th class="text-right">Acciones</th>
-                        </tr>
-                        <tr>
-                            <th class="border-left">Saldo Anterior</th>
-                            <th>Cambio de Máquina</th>
-                            <th>Entrada de molino</th>
-                            <th class="border-right">Sobro del día</th>
-                            
-                            <th class="border-left">Cajas</th>
-                            <th class="border-right">Bolsas</th>
-
-                            <th class="border-left">Cajas</th>
-                            <th>Bolsas</th>
-                            <th  class="border-right">Firma</th>
-
-                            <th class="border-left">Ingreso</th>
-                            <th>Mal estado</th>
-                            <th class="border-right">Sobrantes</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @php
-                            $contador = ($productos_envasados->perPage() * $productos_envasados->currentPage()) + 1 - $productos_envasados->perPage();
-                        @endphp
-                        @foreach($productos_envasados as $prod_env)
-                            <tr @if($prod_env->estado == 1) style="background: #fff988" @endif>
-                                <th>{{$contador++}}</th>
-                                <td class="border-right">{{$prod_env->fecha}}</td>
-                                <td>{{$prod_env->maquina->nombre}}</td>
-                                <td>{{$prod_env->encargado->username}}</td>
-                                <td>{{$prod_env->sabor}}</td>
-
-                                <td class="border-left">{{is_null($prod_env->balde_saldo_anterior)? '-': $prod_env->producto_saldo_anterior->balde_sobro_del_dia}}</td>
-                                <td></td>
-                                <td>{{$prod_env->balde_entrada_de_molino}}</td>
-                                <td class="border-right">{{is_null($prod_env->balde_sobro_del_dia)? '-': $prod_env->balde_sobro_del_dia}}</td>
-
-                                <td class="border-left">{{$prod_env->caja_cajas}}</td>
-                                <td class="border-right">{{$prod_env->caja_bolsas}}</td>
-
-                                <td class="border-left">{{-- {{$prod_env->sabor}} --}}</td>
-                                <td></td>
-                                <td class="border-right">{{-- {{$prod_env->sabor}} --}}</td>
-
-                                <td class="border-left">{{-- {{$prod_env->sabor}} --}}</td>
-                                <td></td>
-                                <td class="border-right">{{-- {{$prod_env->sabor}} --}}</td>
-
-                                <td>{{$prod_env->observacion}}</td>
-                                <td>
-                                    @if($prod_env->estado == 1)
-                                        <span class="badge bg-warning">Pendiente</span>
-                                    @elseif($prod_env->estado == 2)
-                                        <span class="badge bg-success">Activo</span>
-                                    @endif
-                                </td>
-                                <td>
-                                    @if ($prod_env->estado == 1)
-                                        <div class="btn-group">
-                                            <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                                <i class="fas fa-cog"></i> Acción
-                                            </button>
-                                            <div class="dropdown-menu">
-                                                   {{--  <a wire:click="show_proceso"
-                                                        class="dropdown-item" data-placement="top"
-                                                        title="Ver detalles">
-                                                        <i class="fas fa-eye"></i> Ver Detalles
-                                                    </a> --}}
-                                                    {{-- @can('crear_entrega_a_produccion') --}}
-                                                    @if($prod_env->estado == 1)
-                                                        <a wire:click="open_modal_editar_baldes({{ $prod_env->id }})"
-                                                            class="dropdown-item" data-placement="top"
-                                                            title="Editar {{ $prod_env->codigo }}">
-                                                            <i class="fas fa-edit"></i> Editar Baldes
-                                                        </a>
-                                                        <a wire:click="open_modal_editar_caja({{ $prod_env->id }})"
-                                                            class="dropdown-item" data-placement="top"
-                                                            title="Editar {{ $prod_env->codigo }}">
-                                                            <i class="fas fa-edit"></i> Editar Cajas
-                                                        </a>
-                                                        {{-- <a wire:click="open_modal_editar_salida_mol({{ $prod_env->id }})"
-                                                            class="dropdown-item" data-placement="top"
-                                                            title="Editar {{ $prod_env->codigo }}">
-                                                            <i class="fas fa-edit"></i> Editar Salidas o cambios
-                                                        </a>
-                                                        <a wire:click="open_modal_editar_salida_mol({{ $prod_env->id }})"
-                                                            class="dropdown-item" data-placement="top"
-                                                            title="Editar {{ $prod_env->codigo }}">
-                                                            <i class="fas fa-edit"></i> Editar Bobinas
-                                                        </a> --}}
-
-                                                        @php
-                                                            # validar
-                                                            # color verde = que la validacion ha sido existosa
-                                                            # color rojo  = que no puede pasar al siguiente estado
-                                                            $saldo_anterior = 0;
-                                                            $total_baldes = 0;
-                                                            $prod_saldo_anterior = $prod_env->producto_saldo_anterior;
-                                                            if($prod_saldo_anterior){
-                                                                $saldo_anterior = $prod_saldo_anterior->balde_sobro_del_dia;
-                                                            }
-                                                            $total_baldes = round($saldo_anterior + $prod_env->balde_entrada_de_molino, 2);
-                                                            $error_baldes = true;
-                                                            $error_cajas = true;
-                                                            if(round($prod_env->balde_sobro_del_dia, 2) == $total_baldes && is_null($prod_env->caja_cajas) && is_null($prod_env->caja_bolsas) ){
-                                                                $error_baldes = false;
-                                                                $error_cajas = false;
-                                                            }
-                                                            if($error_baldes && (!is_null($prod_env->caja_cajas) || !is_null($prod_env->caja_bolsas))){
-                                                                $error_cajas = false;
-                                                                $error_baldes = false;
-                                                            }
-                                                        @endphp
-                                                        <a @if(!$error_baldes && !$error_cajas)wire:click="confirmar_producto_envasado({{ $prod_env->id }})" @endif
-                                                            class="dropdown-item @if($error_baldes || $error_cajas) bg-danger @else bg-success @endif" data-placement="top"
-                                                            title="@if($error_baldes) ERROR: En caso de que este vacio cajas y bolsas, debe coincidir (saldo_anterior + entrada_molino) con sobro_del_dia @endif \n
-                                                                    @if($error_cajas) ERROR: Debe llenar  @endif">
-                                                            <i class="fas fa-edit"></i> Confirmar Registro
-                                                        </a>
-                                                    @endif
-
-                                                    {{-- <a wire:click.prevent="$emit('alerta', 'eliminar_maquina', {{ $prod_env->id }})"
-                                                        class="dropdown-item" data-placement="top"
-                                                        title="Eliminar">
-                                                        <i class="fas fa-trash"></i> Eliminar
-                                                    </a> --}}
-                                                {{-- @endcan --}}
-                                            </div>
-                                        </div>
-                                    @elseif($prod_env->estado == 0)
-                                        <button class="btn-sm btn-dark" wire:click="restaurar_maquina({{ $prod_env->id }})"><i class="fas fa-undo"></i> Restaurar </button>
-                                    @endif
-                                </td>
+    
+            @if(count($productos_envasados) > 0)
+                <div class="table-responsive-xl">
+                    <table class="table table-sm text-sm table-striped">
+                        <thead>
+                            <tr>
+                                <th rowspan="2">#</th>
+                                <th rowspan="2" class="text-center border-right">Fecha</th>
+                                <th rowspan="2">Máquina</th>
+                                <th rowspan="2">Nombre</th>
+                                <th rowspan="2">Sabor</th>
+                                <th colspan="4" class="text-center border-left border-right">Baldes</th>
+                                <th colspan="2" class="text-center border-left border-right">Cajas</th>
+                                <th colspan="3" class="text-center border-left border-right">Salidas o cambio</th>
+                                <th colspan="3" class="text-center border-left border-right">Bobinas</th>
+                                <th>Observaciones</th>
+                                <th>Estado</th>
+                                <th class="text-right">Acciones</th>
                             </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
-            <div class="d-flex justify-content-center">
-                {{ $productos_envasados->links() }}
-            </div>
-        @else
-            <p class="text-danger text-center">No hay registros de salidas.</p>
+                            <tr>
+                                <th class="border-left">Saldo Anterior</th>
+                                <th>Cambio de Máquina</th>
+                                <th>Entrada de molino</th>
+                                <th class="border-right">Sobro del día</th>
+                                
+                                <th class="border-left">Cajas</th>
+                                <th class="border-right">Bolsas</th>
+    
+                                <th class="border-left">Cajas</th>
+                                <th>Bolsas</th>
+                                <th  class="border-right">Firma</th>
+    
+                                <th class="border-left">Ingreso</th>
+                                <th>Mal estado</th>
+                                <th class="border-right">Sobrantes</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @php
+                                $contador = ($productos_envasados->perPage() * $productos_envasados->currentPage()) + 1 - $productos_envasados->perPage();
+                            @endphp
+                            @foreach($productos_envasados as $prod_env)
+                                <tr @if($prod_env->estado == 1) style="background: #fff988" @endif>
+                                    <th>{{$contador++}}</th>
+                                    <td class="border-right">{{$prod_env->fecha}}</td>
+                                    <td>{{$prod_env->maquina->nombre}}</td>
+                                    <td>{{$prod_env->encargado->username}}</td>
+                                    <td>{{$prod_env->sabor}}</td>
+    
+                                    <td class="border-left">{{is_null($prod_env->balde_saldo_anterior)? '-': $prod_env->producto_saldo_anterior->balde_sobro_del_dia}}</td>
+                                    <td></td>
+                                    <td>{{$prod_env->balde_entrada_de_molino}}</td>
+                                    <td class="border-right">{{is_null($prod_env->balde_sobro_del_dia)? '-': $prod_env->balde_sobro_del_dia}}</td>
+    
+                                    <td class="border-left">{{$prod_env->caja_cajas}}</td>
+                                    <td class="border-right">{{$prod_env->caja_bolsas}}</td>
+    
+                                    <td class="border-left">{{-- {{$prod_env->sabor}} --}}</td>
+                                    <td></td>
+                                    <td class="border-right">{{-- {{$prod_env->sabor}} --}}</td>
+    
+                                    <td class="border-left">{{-- {{$prod_env->sabor}} --}}</td>
+                                    <td></td>
+                                    <td class="border-right">{{-- {{$prod_env->sabor}} --}}</td>
+    
+                                    <td>{{$prod_env->observacion}}</td>
+                                    <td>
+                                        @if($prod_env->estado == 1)
+                                            <span class="badge bg-warning">Pendiente</span>
+                                        @elseif($prod_env->estado == 2)
+                                            <span class="badge bg-success">Activo</span>
+                                        @endif
+                                    </td>
+                                    <td>
+                                        @if ($prod_env->estado == 1)
+                                            <div class="btn-group">
+                                                <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                    <i class="fas fa-cog"></i> Acción
+                                                </button>
+                                                <div class="dropdown-menu">
+                                                       {{--  <a wire:click="show_proceso"
+                                                            class="dropdown-item" data-placement="top"
+                                                            title="Ver detalles">
+                                                            <i class="fas fa-eye"></i> Ver Detalles
+                                                        </a> --}}
+                                                        {{-- @can('crear_entrega_a_produccion') --}}
+                                                        @if($prod_env->estado == 1)
+                                                            <a wire:click="open_modal_editar_baldes({{ $prod_env->id }})"
+                                                                class="dropdown-item" data-placement="top"
+                                                                title="Editar {{ $prod_env->codigo }}">
+                                                                <i class="fas fa-edit"></i> Editar Baldes
+                                                            </a>
+                                                            <a wire:click="open_modal_editar_caja({{ $prod_env->id }})"
+                                                                class="dropdown-item" data-placement="top"
+                                                                title="Editar {{ $prod_env->codigo }}">
+                                                                <i class="fas fa-edit"></i> Editar Cajas
+                                                            </a>
+                                                            {{-- <a wire:click="open_modal_editar_salida_mol({{ $prod_env->id }})"
+                                                                class="dropdown-item" data-placement="top"
+                                                                title="Editar {{ $prod_env->codigo }}">
+                                                                <i class="fas fa-edit"></i> Editar Salidas o cambios
+                                                            </a>
+                                                            <a wire:click="open_modal_editar_salida_mol({{ $prod_env->id }})"
+                                                                class="dropdown-item" data-placement="top"
+                                                                title="Editar {{ $prod_env->codigo }}">
+                                                                <i class="fas fa-edit"></i> Editar Bobinas
+                                                            </a> --}}
+    
+                                                            @php
+                                                                # validar
+                                                                # color verde = que la validacion ha sido existosa
+                                                                # color rojo  = que no puede pasar al siguiente estado
+                                                                $saldo_anterior = 0;
+                                                                $total_baldes = 0;
+                                                                $prod_saldo_anterior = $prod_env->producto_saldo_anterior;
+                                                                if($prod_saldo_anterior){
+                                                                    $saldo_anterior = $prod_saldo_anterior->balde_sobro_del_dia;
+                                                                }
+                                                                $total_baldes = round($saldo_anterior + $prod_env->balde_entrada_de_molino, 2);
+                                                                $error_baldes = true;
+                                                                $error_cajas = true;
+                                                                if(round($prod_env->balde_sobro_del_dia, 2) == $total_baldes && is_null($prod_env->caja_cajas) && is_null($prod_env->caja_bolsas) ){
+                                                                    $error_baldes = false;
+                                                                    $error_cajas = false;
+                                                                }
+                                                                if($error_baldes && (!is_null($prod_env->caja_cajas) || !is_null($prod_env->caja_bolsas))){
+                                                                    $error_cajas = false;
+                                                                    $error_baldes = false;
+                                                                }
+                                                            @endphp
+                                                            <a @if(!$error_baldes && !$error_cajas)wire:click="confirmar_producto_envasado({{ $prod_env->id }})" @endif
+                                                                class="dropdown-item @if($error_baldes || $error_cajas) bg-danger @else bg-success @endif" data-placement="top"
+                                                                title="@if($error_baldes) ERROR: En caso de que este vacio cajas y bolsas, debe coincidir (saldo_anterior + entrada_molino) con sobro_del_dia @endif \n
+                                                                        @if($error_cajas) ERROR: Debe llenar  @endif">
+                                                                <i class="fas fa-edit"></i> Confirmar Registro
+                                                            </a>
+                                                        @endif
+    
+                                                        {{-- <a wire:click.prevent="$emit('alerta', 'eliminar_maquina', {{ $prod_env->id }})"
+                                                            class="dropdown-item" data-placement="top"
+                                                            title="Eliminar">
+                                                            <i class="fas fa-trash"></i> Eliminar
+                                                        </a> --}}
+                                                    {{-- @endcan --}}
+                                                </div>
+                                            </div>
+                                        @elseif($prod_env->estado == 0)
+                                            <button class="btn-sm btn-dark" wire:click="restaurar_maquina({{ $prod_env->id }})"><i class="fas fa-undo"></i> Restaurar </button>
+                                        @endif
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+                <div class="d-flex justify-content-center">
+                    {{ $productos_envasados->links() }}
+                </div>
+            @else
+                <p class="text-danger text-center">No hay registros de salidas.</p>
+            @endif
         @endif
+        
+
+        {{-- <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModal">
+            Launch demo modal
+          </button>
+          
+          <!-- Modal -->
+          <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title" id="exampleModalLabel">Modal title</h5>
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                  </button>
+                </div>
+                <div class="modal-body">
+                  ...
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                  <button type="button" class="btn btn-primary">Save changes</button>
+                </div>
+              </div>
+            </div>
+          </div> --}}
     </div>
 </div>

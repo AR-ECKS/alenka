@@ -28,7 +28,7 @@ class MaquinaIndex extends Component
     }
 
     private function get_data(){
-        $maquinas = Maquina::/* where('estado', '<>', 0)-> */paginate(1);
+        $maquinas = Maquina::where('estado', '<>', 0)->paginate(5);
         return $maquinas;
     }
 
@@ -58,6 +58,7 @@ class MaquinaIndex extends Component
     /* ******************************************************************************************* */
 
     public function close_modal_create_edit_machine(){
+        #$this->emit('cerrar_modal', '#modalForMachine');
         $this->operation = '';
         $this->reset([
             'nombre',
@@ -77,6 +78,7 @@ class MaquinaIndex extends Component
     public function open_modal_crear_maquina(){
         $this->close_modal_create_edit_machine();
         $this->operation = 'create_machine';
+        #$this->emit('abrir_modal', '#modalForMachine');
     }
 
     public function save_maquina(){
@@ -122,6 +124,7 @@ class MaquinaIndex extends Component
             $this->nombre = $maquina->nombre;
             $this->descripcion = $maquina->descripcion;
             $this->operation = 'edit_machine';
+            #$this->emit('abrir_modal', '#modalForMachine');
         }
     }
 
