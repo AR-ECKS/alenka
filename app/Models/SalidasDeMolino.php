@@ -44,11 +44,17 @@ class SalidasDeMolino extends Model
     }
 
     public function detalle_salida_molinos(){
-        return $this->hasMany(DetalleSalidasDeMolino::class, 'salida_de_molino_id');
+        return $this->hasMany(DetalleSalidasDeMolino::class, 'salida_de_molino_id')
+            ->where('estado', '<>', 0);
     }
 
     public function producto_envasado(){
+        return $this->belongsTo(ProductosEnvasados::class, 'salida_de_molino_id');
+    }
+
+    /* REVERSE */
+    /* public function producto_envasado(){
         return $this->hasOne(ProductosEnvasados::class, 'salida_de_molino_id');
     }
-    
+     */
 }

@@ -42,10 +42,10 @@ class ProductosEnvasados extends Model
         return $this->belongsTo(User::class, 'encargado_id');
     }
 
-    public function salida_de_molino()
+    /* public function salida_de_molino()
     {
         return $this->belongsTo(SalidasDeMolino::class, 'salida_de_molino_id');
-    }
+    } */
 
     public function maquina()
     {
@@ -54,6 +54,13 @@ class ProductosEnvasados extends Model
 
     public function producto_saldo_anterior(){
         return $this->belongsTo(ProductosEnvasados::class, 'balde_saldo_anterior');
+    }
+
+    /* REVERSE */
+
+    public function salidas_de_molino(){
+        return $this->hasMany(SalidasDeMolino::class, 'producto_envasado_id')
+            ->where('estado', '<>', 0);
     }
 
 }

@@ -110,6 +110,9 @@ Route::middleware('auth')->group(function () {
     Route::get('admin/pre_salida_molino/{id_proceso}', [PreSalidaMolinoController::class, 'index'])->name('preSalidaMolino');
     Route::get('admin/maquina', [MaquinaController::class, 'index'])->name('maquina.index');
     Route::get('admin/productos_envasados', [ProductosEnvasadosController::class, 'index'])->name('productosEnvasados.index');
+
+    # pdf
+    Route::get('admin/pdf_reporte_salida_molino/{fecha}', [ProduccionController::class, 'reporte_pdf_salida_molino'])->name('salida_de_molino.pdf');
 });
 
 // api

@@ -8,6 +8,7 @@ use Livewire\WithPagination;
 use App\Models\User;
 use App\Models\ProductosEnvasados;
 use App\Models\SalidasDeMolino;
+use App\Models\Maquina;
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
@@ -20,9 +21,11 @@ class ProductoEnvasadoIndex extends Component
     protected $paginationTheme = 'bootstrap';
 
     protected $listeners = [
-        'eliminar_producto_envasado'
+        'eliminar_producto_envasado',
+        'quitar_salida_molino'
     ];
 
+    public $LISTA_DE_SABORES = [];
     public function mount(){
         $this->fechaActual = Carbon::now();#->isoFormat('YYYY-MM-DD');
         $this->anio = $this->fechaActual->isoFormat('YYYY');
@@ -30,17 +33,25 @@ class ProductoEnvasadoIndex extends Component
         $this->dia = $this->fechaActual->isoFormat('DD');
 
         $this->statusMes = $this->statusDia = true;
+
+        $this->LISTA_DE_SABORES = include(app_path(). '/dataCustom/sabores.php');
     }
 
     public function render()
     {
         #$this->actualiza_fecha();
+        $maquinas = Maquina::where('estado', '<>', 0)->get();
+        $usuarios = User::where('tipo', 2)->get();
         return view('livewire.producto-envasado-index', [
             'productos_envasados' => $this->get_data(),
             'list_anio' => $this->get_gestiones(),
             'list_mes' => $this->get_meses(),
             'list_dias' => $this->get_dias(),
-            'baldes_anteriores' => $this->get_baldes_anteriores()
+            'baldes_anteriores' => $this->get_baldes_anteriores(),
+            'salidas_molinos' => $this->get_disponibles_salidas_de_molino(),
+            'current_salidas_molinos' => $this->get_current_balde_salidas_molinos(),
+            'maquinas' => $maquinas,
+            'usuarios' => $usuarios
         ]);
     }
 
@@ -62,7 +73,7 @@ class ProductoEnvasadoIndex extends Component
                 }
             }
         }
-        #$productos_envasados;
+        $productos_envasados->orderBy('fecha', 'DESC');
         return $productos_envasados->paginate(10);
     }
 
@@ -107,20 +118,24 @@ class ProductoEnvasadoIndex extends Component
     }
 
     public function get_meses(){
-        $mesTemporal = $this->fechaActual->isoFormat('MM');
-        $meses = ProductosEnvasados::select(
-            DB::raw("DATE_FORMAT(fecha, '%m') as mes")
-        )
-        ->union(
-            DB::table(DB::raw("(SELECT '{$mesTemporal}' as mes) as temporal"))
-        )
-        ->distinct()
-        ->orderBy('mes');
+        if($this->anio !== ""){
+            $mesTemporal = $this->fechaActual->isoFormat('MM');
+            $meses = ProductosEnvasados::select(
+                DB::raw("DATE_FORMAT(fecha, '%m') as mes")
+            )
+            ->union(
+                DB::table(DB::raw("(SELECT '{$mesTemporal}' as mes) as temporal"))
+            )
+            ->distinct()
+            ->orderBy('mes');
 
-        if(!is_null($this->anio) && $this->anio !== ""){
-            $meses->where( DB::raw("DATE_FORMAT(fecha, '%Y')"), $this->anio);
-        }
+            if(!is_null($this->anio) && $this->anio !== ""){
+                $meses->where( DB::raw("DATE_FORMAT(fecha, '%Y')"), $this->anio);
+            }
         return $meses->get();
+        } else {
+            return [];
+        }
     }
 
     public function get_dias(){
@@ -151,16 +166,103 @@ class ProductoEnvasadoIndex extends Component
     }
 
     protected function rules(){
+        if($this->operation=='create_producto'){
+            return $this->rulesForCreate();
+        }
         if($this->operation=='edit_baldes'){
             return $this->rulesForEditBalde();
         } else if($this->operation=='edit_cajas'){
             return $this->rulesForEditCaja();
         }
         return array_merge(
+            $this->rulesForCreate(),
             $this->rulesForEditBalde(),
             $this->rulesForEditCaja()
         );
     }
+
+    /* ************************************************************ */
+    public $codigo;
+    public $fecha;
+    public $maquina_id;
+    public $nombre;
+    public $sabor;
+    public $observaciones;
+
+    public function rulesForCreate(){
+        return [
+            'codigo' => 'required',
+            'fecha' => 'required|date',
+            'maquina_id' => 'required|exists:maquinas,id',
+            'nombre' => 'nullable|exists:users,id',
+            'sabor' => 'required|string',
+            'observaciones' => 'nullable|string|max:255'
+        ];
+    }
+
+    public function open_modal_crear_producto(){
+        $this->close_modal_crear_producto();
+        $this->operation = 'create_producto';
+        $fechaAct = Carbon::now();
+        $ultimaEntrega = ProductosEnvasados::whereDate('created_at', $fechaAct->toDateString())
+            ->orderBy('id', 'desc')
+            ->first();
+        $numeroEntrega = $ultimaEntrega ? ((int) explode('-', $ultimaEntrega->codigo)[1] + 1) : 1;
+
+        $this->codigo = "PROD-{$numeroEntrega}-{$fechaAct->locale('es')->isoFormat('DD-MMM-Y')}";
+        $this->fecha = $fechaAct->isoFormat('YYYY-MM-DD');
+    }
+
+    public function close_modal_crear_producto(){
+        $this->operation = '';
+        $this->reset([
+            'codigo',
+            'fecha',
+            'maquina_id',
+            'nombre',
+            'sabor',
+            'observaciones'
+        ]);
+        $this->resetValidation();
+    }
+
+    public function save_modal_crear_producto(){
+        if($this->operation == 'create_producto'){
+            $this->validate();
+            try {
+                DB::beginTransaction();
+                $prod_env = new ProductosEnvasados();
+                $prod_env->codigo = $this->codigo;
+                $prod_env->fecha = $this->fecha;
+                $prod_env->sabor = $this->sabor;
+                $prod_env->maquina_id = $this->maquina_id;
+                $prod_env->encargado_id =$this->nombre;
+                $prod_env->observacion = $this->observaciones;
+                $prod_env->save();
+
+                DB::commit();
+                $this->emit('success', 'Se ha creado exitosamente el regsitro del producto envasado');
+                $this->close_modal_crear_producto();
+            } catch(\Exception $e){
+                DB::rollBack();
+                $this->emit('error', 'Error al crear la nuevo producot envasado. '. $e->getMessage());
+            }
+        }
+    }
+
+    public function rellenar_sugerido(){
+        if($this->maquina_id!=='' && $this->fecha!==''){
+            $salid_mol = SalidasDeMolino::where('fecha', $this->fecha)
+                ->where('maquina_id', $this->maquina_id)->first();
+            if($salid_mol){
+                $this->sabor = $salid_mol->sabor;
+                $this->nombre = $salid_mol->encargado_id;
+            }
+        }
+    }
+
+
+    /* ************************************************************ */
 
     public $producto_envasado_balde = null;
     public $balde_id;
@@ -195,7 +297,11 @@ class ProductoEnvasadoIndex extends Component
             $this->balde_id = $this->producto_envasado_balde->id;
             $this->balde_saldo_anterior = $this->producto_envasado_balde->balde_saldo_anterior;
             $this->balde_cambio_de_maquina = null; #falta
-            $this->balde_entrada_de_molino = $this->producto_envasado_balde->balde_entrada_de_molino;
+            $total_entrada = 0;
+            foreach($this->producto_envasado_balde->salidas_de_molino as $mols){
+                $total_entrada += count($mols->detalle_salida_molinos);
+            }
+            $this->balde_entrada_de_molino = $total_entrada;
             $this->balde_sobro_del_dia = $this->producto_envasado_balde->balde_sobro_del_dia;
             $this->balde_observacion = $this->producto_envasado_balde->observacion;
         }
@@ -214,6 +320,7 @@ class ProductoEnvasadoIndex extends Component
         ]);
         $this->producto_envasado_balde = null;
         $this->resetValidation();
+        $this->limpiar_salida_molino();
     }
 
     public function save_modal_editar_balde(){
@@ -260,14 +367,123 @@ class ProductoEnvasadoIndex extends Component
                 #->orWhere('tabla_saldo.id', $this->producto_envasado_balde->id)
                 ->get();
             # funciona pero repite
-            return ProductosEnvasados::where('estado', 2)
+            /* return ProductosEnvasados::where('estado', 2)
                 ->where('fecha', '<', $this->producto_envasado_balde->fecha)
                 ->where('sabor', $this->producto_envasado_balde->sabor)
                 ->whereNotNull('balde_sobro_del_dia')
                 #->whereNull('balde_saldo_anterior')
+                ->get(); */
+        } else {
+            return [];
+        }
+    }
+
+    private function get_disponibles_salidas_de_molino(){
+        if($this->operation == 'edit_baldes' && $this->producto_envasado_balde){
+            return SalidasDeMolino::select(
+                'salidas_de_molino.id',
+                'salidas_de_molino.codigo',
+                'salidas_de_molino.fecha',
+                'salidas_de_molino.turno',
+                'salidas_de_molino.producto_envasado_id',
+                'salidas_de_molino.observacion',
+                DB::raw("(
+                    SELECT COUNT(*)
+                    FROM detalle_salidas_de_molino det_salida
+                    JOIN detalle_proceso_preparacion det_proceso ON(det_proceso.id = det_salida.detalle_proceso_preparacion_id)
+                    WHERE salidas_de_molino.id = det_salida.salida_de_molino_id
+                        AND det_salida.estado <> 0
+                        AND det_proceso.estado <> 0
+                ) AS cantidad"),
+                DB::raw("(
+                    SELECT SUM(det_proceso.kg_balde)
+                    FROM detalle_salidas_de_molino det_salida
+                    JOIN detalle_proceso_preparacion det_proceso ON(det_proceso.id = det_salida.detalle_proceso_preparacion_id)
+                    WHERE salidas_de_molino.id = det_salida.salida_de_molino_id
+                        AND det_salida.estado <> 0
+                        AND det_proceso.estado <> 0
+                ) AS kgs")
+            )
+            ->leftJoin('productos_envasados', 'productos_envasados.id', '=', 'salidas_de_molino.producto_envasado_id')
+            ->where('salidas_de_molino.estado', '<>', 0)
+            ->where('salidas_de_molino.fecha', '<=', $this->producto_envasado_balde->fecha)
+            ->where('salidas_de_molino.sabor', $this->producto_envasado_balde->sabor)
+            ->where('salidas_de_molino.maquina_id', $this->producto_envasado_balde->maquina_id)
+            ->whereNull('salidas_de_molino.producto_envasado_id')
+            /* ->whereNotNull('tabla_saldo.balde_sobro_del_dia')
+            ->where(function($query){
+                $query->whereNull('salidas_de_molino.producto_envasado_id');
+                ->orWhere('salidas_de_molino.id', $this->producto_envasado_balde->balde_saldo_anterior);
+            }) */
+           ->orderBy('salidas_de_molino.fecha', 'DESC')
+            ->get();
+        } else {
+            return [];
+        }
+    }
+
+    private function get_current_balde_salidas_molinos(){
+        if($this->operation == 'edit_baldes' && $this->producto_envasado_balde){
+            return SalidasDeMolino::where('producto_envasado_id', $this->producto_envasado_balde->id)
+                ->where('estado', '<>', 0)
+                ->orderBy('fecha', 'desc')
                 ->get();
         } else {
             return [];
+        }
+    }
+
+    public $balde_salida_molino_id;
+    public function agregar_salida_molino(){
+        $this->validate([
+            'balde_salida_molino_id' => 'required|exists:salidas_de_molino,id'
+        ]);
+        try {
+            $salida_molino = SalidasDeMolino::where('id', $this->balde_salida_molino_id)->first();
+            $salida_molino->producto_envasado_id = $this->producto_envasado_balde->id;
+            $salida_molino->id_user = Auth::id();
+            $salida_molino->save();
+            $this->emit('success', 'Se ha agregado exitosamente una salida de molino');
+            $this->limpiar_salida_molino();
+            $this->actualiza_entrada_de_molino();
+        } catch(\Exception $e){
+            $this->emit('error', 'Error al agregar salida de molino. '. $e->getMessage());
+        }
+    }
+
+    public function quitar_salida_molino($id){
+        try {
+            $salida_molino = SalidasDeMolino::where('id', $id)->first();
+            $salida_molino->producto_envasado_id = null;
+            $salida_molino->id_user = Auth::id();
+            $salida_molino->save();
+            $this->emit('success', 'Se ha quitado exitosamente la salida de molino');
+            $this->limpiar_salida_molino();
+            $this->actualiza_entrada_de_molino();
+        } catch(\Exception $e){
+            $this->emit('error', 'Error al quitar salida de molino. '. $e->getMessage());
+        }
+    }
+
+    public function limpiar_salida_molino(){
+        $this->reset([
+            'balde_salida_molino_id'
+        ]);
+        $this->resetValidation([
+            'balde_salida_molino_id'
+        ]);
+    }
+
+    private function actualiza_entrada_de_molino(){
+        if($this->producto_envasado_balde){
+            $prod_curr = ProductosEnvasados::where('id', $this->producto_envasado_balde->id)->first();
+            if($prod_curr){
+                $total = 0;
+                foreach($prod_curr->salidas_de_molino as $sal_mol){
+                    $total += count($sal_mol->detalle_salida_molinos);
+                }
+                $this->balde_entrada_de_molino = $total;
+            }
         }
     }
 
@@ -342,10 +558,26 @@ class ProductoEnvasadoIndex extends Component
                 $producto_envasado->save();
                 DB::commit();
                 $this->emit('success', 'Se ha confimado el producto envasado exitosamente.');
-                $this->close_modal_editar_balde();
+                #$this->close_modal_editar_balde();
             } catch(\Exception $e){
                 DB::rollBack();
                 $this->emit('error', 'Error al confirmar. '. $e->getMessage());
+            }
+        }
+    }
+
+    public function cambiar_estado($id){
+        if($this->operation == ""){
+            try{
+                DB::beginTransaction();
+                $producto_envasado = ProductosEnvasados::where('id', $id)->first();
+                $producto_envasado->estado = $producto_envasado->estado==1? 2: 1;
+                $producto_envasado->save();
+                DB::commit();
+                $this->emit('success', 'Se ha cambiado el estado del producto envasado exitosamente.');
+            } catch(\Exception $e){
+                DB::rollBack();
+                $this->emit('error', 'Error al cambiar estado. '. $e->getMessage());
             }
         }
     }

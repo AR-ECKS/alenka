@@ -1,7 +1,7 @@
 <div>
     @if($operation == '')
         <div class="float-right mt-3">
-            <a type="button" class="btn btn-primary text-white" wire:click="open_modal_crear_salida_mol">
+            <a type="button" class="btn btn-primary text-white" wire:click="open_modal_crear_producto">
                 <i class="fas fa-database"></i> Nuevo Producto Envasado 
             </a>
         </div>
@@ -12,7 +12,133 @@
     <br>
 
     <div class="tab-content">
-        @if($operation=='edit_baldes')
+        @if($operation=='create_producto')
+            <div class="card-body p-3">
+                <div class="modal-header">
+                    <h5 class="modal-title mt-0 text-center">
+                        CREAR NUEVO PRODUCTO ENVASADO
+                    </h5>
+                        <button type="button" class="btn btn-close" data-bs-dismiss="modal" aria-label="close" wire:click="close_modal_crear_producto"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+
+                        <div class="col-md-4">
+                            <div class="input-group mb-2">
+                                <div class="input-group-prepend">
+                                    <label class="input-group-text" for="codigo">
+                                        <i class="fas fa-weight-scale pe-1"></i>
+                                        <b>Código </b>
+                                    </label>
+                                </div>
+                                <input class="form-control @error('codigo') border-danger @enderror" type="text" wire:model="codigo" id="codigo" disabled>
+                            </div>
+                            @error('codigo')
+                                <span class="text-danger">{{ $message }}</span>
+                            @enderror
+                        </div>
+
+                        <div class="col-md-4">
+                            <div class="input-group mb-2">
+                                <div class="input-group-prepend">
+                                    <label class="input-group-text" for="fecha">
+                                        <i class="fas fa-weight-scale pe-1"></i>
+                                        <b>Fecha </b>
+                                    </label>
+                                </div>
+                                <input class="form-control @error('fecha') border-danger @enderror" type="date" wire:model="fecha" id="fecha">
+                            </div>
+                            @error('fecha')
+                                <span class="text-danger">{{ $message }}</span>
+                            @enderror
+                        </div>
+
+                        <div class="col-md-4">
+                            <div class="input-group mb-2">
+                                <div class="input-group-prepend" for="maquina_id">
+                                    <label class="input-group-text">
+                                        <i class="fas fa-user pe-1"></i>
+                                        <b>Máquina</b>
+                                    </label>
+                                    <button class="btn btn-success" wire:click="rellenar_sugerido">
+                                        <i class="fas fa-square"></i>
+                                    </button>
+                                </div>
+                                <select class="form-control @error('maquina_id') border-danger @enderror" id="maquina_id" wire:model="maquina_id">
+                                    <option value="">Seleccione maquina</option>
+                                    @foreach ($maquinas as $maq)
+                                        <option value="{{$maq->id}}">{{ $maq->nombre }} .:: {{$maq->descripcion}}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            @error('maquina_id')
+                                <span class="text-danger">{{ $message }}</span>
+                            @enderror
+                        </div>
+
+                        <div class="col-md-4">
+                            <div class="input-group mb-2">
+                                <label class="input-group-prepend" for="sabor">
+                                    <div class="input-group-text">
+                                        <i class="fas fa-user pe-1"></i>
+                                        <b>Sabor</b>
+                                    </div>
+                                </label>
+                                <select class="form-control @error('sabor') border-danger @enderror" id="sabor" wire:model="sabor">
+                                    <option value="">Seleccione sabor</option>
+                                    @foreach ($LISTA_DE_SABORES as $sab)
+                                        <option value="{{$sab}}">{{ $sab }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            @error('sabor')
+                                <span class="text-danger">{{ $message }}</span>
+                            @enderror
+                        </div>
+
+                        <div class="col-md-4">
+                            <div class="input-group mb-2">
+                                <label class="input-group-prepend" for="nombre">
+                                    <div class="input-group-text">
+                                        <i class="fas fa-user pe-1"></i>
+                                        <b>Nombre</b>
+                                    </div>
+                                </label>
+                                <select class="form-control @error('nombre') border-danger @enderror" id="nombre" wire:model="nombre">
+                                    <option value="">Sin operador</option>
+                                    @foreach ($usuarios as $us)
+                                        <option value="{{$us->id}}">{{ $us->username }} .:: {{$us->email}}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            @error('nombre')
+                                <span class="text-danger">{{ $message }}</span>
+                            @enderror
+                        </div>
+
+                        <div class="col-md-4">
+                            <div class="input-group mb-2">
+                                <div class="input-group-prepend">
+                                    <label class="input-group-text" for="observaciones">
+                                        <i class="fas fa-triangle-exclamation pe-1"></i>
+                                        <b>Observación</b>
+                                    </label>
+                                </div>
+                                <textarea class="form-control @error('observaciones') border-danger @enderror" wire:model="observaciones" id="observaciones"></textarea>
+                            </div>
+                            @error('observaciones')
+                                <span class="text-danger">{{ $message }}</span>
+                            @enderror
+                        </div>
+
+                    </div>
+                </div>
+                <div class="modal-footer d-flex justify-content-center">
+                    <button type="button" class="btn btn-danger" wire:click="close_modal_crear_producto">CANCELAR</button>
+                    <button type="button" class="btn btn-primary" wire:click="save_modal_crear_producto">GUARDAR</button>
+                </div>
+            </div>
+        @elseif($operation=='edit_baldes')
             <div class="card-body p-3">
                 <div class="modal-header">
                     <h5 class="modal-title mt-0 text-center">
@@ -110,6 +236,75 @@
                             @enderror
                         </div>
 
+                    </div>
+                    <hr>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="input-group mb-2">
+                                <div class="input-group-prepend">
+                                    <label class="input-group-text" for="balde_salida_molino_id">
+                                        <i class="fas fa-clock pe-1"></i>
+                                        <b>Salida de molino</b>
+                                    </label>
+                                </div>
+                                <select class="form-control @error('balde_salida_molino_id') border-danger @enderror" id="balde_salida_molino_id" wire:model="balde_salida_molino_id" title="codigo .:: fecha .:: turno .:: cantidad de baldes .:: kg. totales .:: observacion">
+                                    <option value="">seleccionar</option>
+                                    @foreach ($salidas_molinos as $sal_mol)
+                                        <option value="{{$sal_mol->id}}">{{ $sal_mol->codigo }} .:: {{ $sal_mol->fecha }} .:: {{ $sal_mol->turno }} .:: {{ $sal_mol->cantidad }} baldes .:: {{ round($sal_mol->kgs, 2)}} kg. .:: {{ $sal_mol->observacion }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            @error('balde_salida_molino_id')
+                                <span class="text-danger">{{ $message }}</span>
+                            @enderror
+                        </div>
+
+                        <div class="col-md-2">
+                            <button class="btn btn-primary" wire:click="agregar_salida_molino" title="Agregar salida de molino">
+                                AGREGAR
+                            </button>
+                        </div>
+
+                        <div class="col-md-6">
+                            @if(count($current_salidas_molinos) > 0)
+                                <div class="table-responsive">
+                                    <table class="table table-sm text-sm table-striped">
+                                        <thead>
+                                            <tr>
+                                                <th>Fecha</th>
+                                                <th>Código</th>
+                                                <th>Turno</th>
+                                                <th>Baldes</th>
+                                                <th>Kg totales</th>
+                                                <th>Observaciones</th>
+                                                <th class="text-right">Acción</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach($current_salidas_molinos as $salda_mol)
+                                                <tr>
+                                                    <td>{{ $salda_mol->fecha }}</td>
+                                                    <td>{{ $salda_mol->codigo }}</td>
+                                                    <td>{{ $salda_mol->turno }}</td>
+                                                    <td>{{ count($salda_mol->detalle_salida_molinos) }}</td>
+                                                    <td>{{ $salda_mol->total_aprox }}</td>
+                                                    {{-- <td>{{ $salda_mol->recepcionista->username }}</td> --}}
+                                                    <td>{{ $salda_mol->observacion }}</td>
+                                                    <td>
+                                                        <button wire:click.prevent="$emit('alerta', 'quitar_salida_molino', {{ $salda_mol->id }})"
+                                                            class="btn btn-danger" title="Quitar salida de molino" >
+                                                            <i class="fas fa-trash"></i>
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                            @else
+                                <p class="text-danger text-center">No hay registros</p>
+                            @endif
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer d-flex justify-content-center">
@@ -286,12 +481,25 @@
                                     <th>{{$contador++}}</th>
                                     <td class="border-right">{{$prod_env->fecha}}</td>
                                     <td>{{$prod_env->maquina->nombre}}</td>
-                                    <td>{{$prod_env->encargado->username}}</td>
+                                    <td>{{is_null($prod_env->encargado)? 'SIN OPERADOR': $prod_env->encargado->username}}</td>
                                     <td>{{$prod_env->sabor}}</td>
     
                                     <td class="border-left">{{is_null($prod_env->balde_saldo_anterior)? '-': $prod_env->producto_saldo_anterior->balde_sobro_del_dia}}</td>
                                     <td></td>
-                                    <td>{{$prod_env->balde_entrada_de_molino}}</td>
+                                    <td>
+                                        @php 
+                                            $total_baldes = 0;
+                                            foreach ($prod_env->salidas_de_molino as $sal_mol ) {
+                                                $total_baldes += count($sal_mol->detalle_salida_molinos);
+                                            }
+                                        @endphp
+                                        @if(count($prod_env->salidas_de_molino) > 0)
+                                            {{ $total_baldes }}
+                                        @else 
+                                            <span class="text-danger" style="font-size: 9px">Sin asignar</span>
+                                        @endif
+                                        {{--$prod_env->balde_entrada_de_molino--}}
+                                    </td>
                                     <td class="border-right">{{is_null($prod_env->balde_sobro_del_dia)? '-': $prod_env->balde_sobro_del_dia}}</td>
     
                                     <td class="border-left">{{$prod_env->caja_cajas}}</td>
@@ -314,7 +522,7 @@
                                         @endif
                                     </td>
                                     <td>
-                                        @if ($prod_env->estado == 1)
+                                        @if ($prod_env->estado == 1 || $prod_env->estado==2)
                                             <div class="btn-group">
                                                 <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                                     <i class="fas fa-cog"></i> Acción
@@ -375,6 +583,12 @@
                                                                 title="@if($error_baldes) ERROR: En caso de que este vacio cajas y bolsas, debe coincidir (saldo_anterior + entrada_molino) con sobro_del_dia @endif \n
                                                                         @if($error_cajas) ERROR: Debe llenar  @endif">
                                                                 <i class="fas fa-edit"></i> Confirmar Registro
+                                                            </a>
+                                                        @else 
+                                                            <a wire:click="cambiar_estado({{ $prod_env->id }})"
+                                                                class="dropdown-item " data-placement="top"
+                                                                title="cambiar estado">
+                                                                <i class="fas fa-edit"></i> Cambiar estado
                                                             </a>
                                                         @endif
     

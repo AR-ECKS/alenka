@@ -50,6 +50,7 @@ class ProcesoPreparacion extends Model
 
     function detalle_proceso_preparacion()
     {
-        return $this->hasMany(DetalleProcesoPreparacion::class);
+        return $this->hasMany(DetalleProcesoPreparacion::class)
+        ->where('estado', '<>', 0);
     }
 }

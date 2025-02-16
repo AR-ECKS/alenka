@@ -16,6 +16,9 @@ use App\Models\PreSalidaMolinos;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Detalle_Produccion;
+use App\Models\SalidasDeMolino;
+
+use App\PDF\PlantillaSalidaDeMolino;
 
 class ProduccionController extends Controller
 {
@@ -28,6 +31,96 @@ class ProduccionController extends Controller
             ->groupBy('fecha')
             ->get();
         return view('admin.produccion.index', compact('produccion', 'listas_fecha'));
+    }
+
+    public function reporte_pdf_salida_molino($fecha = null){
+        $titulo = 'Salida de Molino';
+        $fecha_car = Carbon::create($fecha);
+        $salidas_mol = SalidasDeMolino::where('fecha', $fecha)
+            ->where('estado', '<>', 0)
+            ->orderBy('turno')->get();
+        if(count($salidas_mol) > 0){
+            $pdf = new PlantillaSalidaDeMolino();
+            $pdf->AddPage();
+            $nombre_archivo = $titulo . ' '. $fecha_car->locale('es')->isoFormat('dddd, YYYY-MM-DD') .'.pdf';
+
+            $borde_celda = 1;
+
+            $tamanio_max_filas = 34;
+
+            $contador = 0;
+            $total_baldes = 0;
+            foreach($salidas_mol as $salida){
+                $pdf->setFont('Arial', '', 6);
+                # fecha
+                $pdf->SetXY(5, $pdf->ALTURA_DATOS + ($contador * $pdf->ALTURA_CELDA));
+                $pdf->Cell(15, $pdf->ALTURA_CELDA, utf8_decode( $salida->fecha), $borde_celda, 0, 'L');
+
+                # encargado de envasados
+                $pdf->Cell(35, $pdf->ALTURA_CELDA, utf8_decode( '' ), $borde_celda, 0, 'L');
+
+                # firma 
+                $pdf->Cell(15, $pdf->ALTURA_CELDA, utf8_decode( '' ), $borde_celda, 0, 'L');
+
+                # sabor
+                $pdf->Cell(15, $pdf->ALTURA_CELDA, utf8_decode( $salida->sabor ), $borde_celda, 0, 'C');
+
+                # cantidad de baldes 
+                $pdf->Cell(35, $pdf->ALTURA_CELDA, utf8_decode( count($salida->detalle_salida_molinos) ), $borde_celda, 0, 'C');
+                $total_baldes += count($salida->detalle_salida_molinos);
+
+                # nombre => nombre del receptor
+                $pdf->MultiCell(20, $pdf->ALTURA_CELDA , utf8_decode( $salida->recepcionista->username ), 1, 'C');
+
+                # maquina
+                $pdf->SetXY(140, $pdf->ALTURA_DATOS + ($contador * $pdf->ALTURA_CELDA));
+                $pdf->MultiCell(20, $pdf->ALTURA_CELDA , utf8_decode( $salida->maquina->nombre ), 1, 'C');
+
+                # firma del operador
+                $pdf->SetXY(160, $pdf->ALTURA_DATOS + ($contador * $pdf->ALTURA_CELDA));
+                $pdf->Cell(25, $pdf->ALTURA_CELDA, utf8_decode( '' ), $borde_celda, 0, 'C');
+
+                # para picar
+                $pdf->Cell(25, $pdf->ALTURA_CELDA, utf8_decode( '' ), $borde_celda, 0, 'C');
+
+                # para sernir 
+                $pdf->Cell(25, $pdf->ALTURA_CELDA, utf8_decode( '' ), $borde_celda, 0, 'C');
+
+                # observaciones
+                $pdf->MultiCell(40, $pdf->ALTURA_CELDA , utf8_decode( $salida->observacion ), 1, 'L');
+
+
+                $contador++;
+            }
+
+            $new_contador = $contador;
+            if($contador%$tamanio_max_filas==0){
+                $pdf->AddPage();
+                $new_contador = 0;
+            }
+            for ($i=$new_contador; $i < $tamanio_max_filas ; $i++) { 
+                $pdf->setFont('Arial', '', 6);
+
+                $pdf->SetXY(5, $pdf->ALTURA_DATOS + ($i * $pdf->ALTURA_CELDA));
+                $pdf->Cell(15, $pdf->ALTURA_CELDA, utf8_decode( ''/* . $i */), $borde_celda, 0, 'C');
+                $pdf->Cell(35, $pdf->ALTURA_CELDA, utf8_decode( '' ), $borde_celda, 0, 'C');
+                $pdf->Cell(15, $pdf->ALTURA_CELDA, utf8_decode( '' ), $borde_celda, 0, 'C');
+                $pdf->Cell(15, $pdf->ALTURA_CELDA, utf8_decode( '' ), $borde_celda, 0, 'C');
+                $pdf->Cell(35, $pdf->ALTURA_CELDA, utf8_decode( '' ), $borde_celda, 0, 'C');
+                $pdf->Cell(20, $pdf->ALTURA_CELDA, utf8_decode( '' ), $borde_celda, 0, 'C');
+                $pdf->Cell(20, $pdf->ALTURA_CELDA, utf8_decode( '' ), $borde_celda, 0, 'C');
+                $pdf->Cell(25, $pdf->ALTURA_CELDA, utf8_decode( '' ), $borde_celda, 0, 'C');
+                $pdf->Cell(25, $pdf->ALTURA_CELDA, utf8_decode( '' ), $borde_celda, 0, 'C');
+                $pdf->Cell(25, $pdf->ALTURA_CELDA, utf8_decode( '' ), $borde_celda, 0, 'C');
+                $pdf->Cell(40, $pdf->ALTURA_CELDA, utf8_decode( '' ), $borde_celda, 0, 'C');
+            }
+
+            $pdf->SetTotalBaldes($total_baldes);
+            $pdf->Output('I', $nombre_archivo);
+            exit;
+        } else {
+            return;
+        }
     }
 
     public function creates($id)

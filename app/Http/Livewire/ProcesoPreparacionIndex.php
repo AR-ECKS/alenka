@@ -35,8 +35,9 @@ class ProcesoPreparacionIndex extends Component
     }
 
     private function get_data(){
-        $procesos_prep = ProcesoPreparacion::#where('estado', 1)->get();
-            paginate(5);
+        $procesos_prep = ProcesoPreparacion::where('estado', '<>', 0)
+            ->orderBy('fecha', 'desc')
+            ->paginate(5);
         return $procesos_prep;
     }
 

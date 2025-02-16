@@ -337,6 +337,12 @@ return [
 
         ],
                 [
+                    #'can'=>'acceso_proveedores',
+                    'text' => 'Máquinas',
+                    'url' => 'admin/maquina',
+                    'icon' => 'fas fa-fax',
+                ],
+                [
                     'can'=>'acceso_proveedores',
                     'text' => 'Proveedores',
                     'url' => 'admin/proveedores',
@@ -406,7 +412,7 @@ return [
                 [
                     'can'=>'acceso_produccion',
                     'text' => 'Producción',
-                    'url' => '',
+                    'url' => 'admin/productos_envasados',
                     'icon' => 'fas fa-diagnoses',
                 ],
                 [

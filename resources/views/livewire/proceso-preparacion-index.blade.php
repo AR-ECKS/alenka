@@ -1,8 +1,10 @@
 <div>
     <div class="float-right mt-3">
-        <a type="button" class="btn btn-primary text-white" wire:click="open_modal_crear_prep_proceso">
-            <i class="fas fa-database"></i> Nueva preparación
-        </a>
+        @if($operation == '')
+            <a type="button" class="btn btn-primary text-white" wire:click="open_modal_crear_prep_proceso">
+                <i class="fas fa-database"></i> Nueva preparación
+            </a>
+        @endif
     </div>
 
     <br><br><br>
@@ -250,82 +252,87 @@
                     {{-- <button type="button" class="btn btn-primary" wire:click="">GUARDAR Y PROCESAR</button> --}}
                 </div>
             </div>
+        @else
+            @if(count($procesos_preparacion) > 0)
+                <div class="table-responsive-xl">
+                    <table class="table table-sm text-sm table-striped">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Codigo</th>
+                                <th>Observacion</th>
+                                <th>Fecha</th>
+                                <th>Sabor</th>
+                                <th>Kg. Totales</th>
+                                <th>Kg. Disponibles</th>
+                                <th>Baldes</th>
+                                <th>Estado</th>
+                                <th class="text-right">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @php
+                                $contador = ($procesos_preparacion->perPage() * $procesos_preparacion->currentPage()) + 1 - $procesos_preparacion->perPage();
+                            @endphp
+                            @foreach($procesos_preparacion as $processs)
+                                <tr>
+                                    <td>{{ $contador++ }}</td>
+                                    <td>{{ $processs->codigo }}</td>
+                                    <td>{{ $processs->observacion }}</td>
+                                    <td>{{ \Carbon\Carbon::parse($processs->fecha)->isoFormat('DD-MM-YYYY')}}</td>
+                                    <td>{{ $processs->despacho->sabor }}</td>
+                                    <td>{{ $processs->total_kg }}</td>
+                                    <td>{{ $processs->disponible_kg }}</td>
+                                    <td class="text-center text-bold" @if(!count($processs->detalle_proceso_preparacion) > 0)style="background: #f75959;color: #fff;" @endif>{{ count($processs->detalle_proceso_preparacion)}}</td>
+                                    <td>
+                                        @if ($processs->estado == 1)
+                                            <span class="badge bg-warning">Activo</span>
+                                        @else
+                                            <span class="badge bg-danger">Inactivo</span>
+                                        @endif
+                                    </td>
+                                    <td class="td-actions text-right">
+                                        @if ($processs->estado == 1)
+                                            <div class="btn-group">
+                                                <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                    <i class="fas fa-cog"></i> Accion
+                                                </button>
+                                                <div class="dropdown-menu">
+                                                        <a wire:click="show_proceso"
+                                                            class="dropdown-item" data-placement="top"
+                                                            title="Ver detalles">
+                                                            <i class="fas fa-eye"></i> Ver Detalles
+                                                        </a>
+                                                        {{-- @can('crear_entrega_a_produccion') --}}
+                                                        <a wire:click="open_modal_admin_prep_proceso({{ $processs->id }})"
+                                                            class="dropdown-item" data-placement="top"
+                                                            title="Ver detalles">
+                                                            <i class="fas fa-bucket"></i> Administración de Baldes
+                                                        </a>
+                                                    {{-- @endcan --}}
+                                                    <a wire:click.prevent="$emit('alerta', 'eliminar_proceso_preparacion', {{ $processs->id }})"
+                                                        class="dropdown-item" data-placement="top"
+                                                        title="Eliminar">
+                                                        <i class="fas fa-trash"></i> Eliminar
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        @elseif($processs->estado == 0)
+                                            <button class="btn-sm btn-dark" wire:click="restaurar_proceso_preparacion({{ $processs->id }})"><i class="fas fa-undo"></i> Restaurar </button>
+                                        @endif
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+                <div class="d-flex justify-content-center">
+                    {{ $procesos_preparacion->links() }}
+                </div>
+            @else
+                <p class="text-danger text-center">No hay registros.</p>
+            @endif
         @endif
 
-        @if(count($procesos_preparacion) > 0)
-            <div class="table-responsive-xl">
-                <table class="table table-sm text-sm table-striped">
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>Codigo</th>
-                            <th>Observacion</th>
-                            <th>Fecha</th>
-                            <th>Kg. Totales</th>
-                            <th>Kg. Disponibles</th>
-                            <th>Estado</th>
-                            <th class="text-right">Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @php
-                            $contador = ($procesos_preparacion->perPage() * $procesos_preparacion->currentPage()) + 1 - $procesos_preparacion->perPage();
-                        @endphp
-                        @foreach($procesos_preparacion as $processs)
-                            <tr>
-                                <td>{{ $contador++ }}</td>
-                                <td>{{ $processs->codigo }}</td>
-                                <td>{{ $processs->observacion }}</td>
-                                <td>{{ \Carbon\Carbon::parse($processs->fecha)->isoFormat('DD-MM-YYYY')}}</td>
-                                <td>{{ $processs->total_kg }}</td>
-                                <td>{{ $processs->disponible_kg }}</td>
-                                <td>
-                                    @if ($processs->estado == 1)
-                                        <span class="badge bg-warning">Activo</span>
-                                    @else
-                                        <span class="badge bg-danger">Inactivo</span>
-                                    @endif
-                                </td>
-                                <td class="td-actions text-right">
-                                    @if ($processs->estado == 1)
-                                        <div class="btn-group">
-                                            <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                                <i class="fas fa-cog"></i> Accion
-                                            </button>
-                                            <div class="dropdown-menu">
-                                                    <a wire:click="show_proceso"
-                                                        class="dropdown-item" data-placement="top"
-                                                        title="Ver detalles">
-                                                        <i class="fas fa-eye"></i> Ver Detalles
-                                                    </a>
-                                                    {{-- @can('crear_entrega_a_produccion') --}}
-                                                    <a wire:click="open_modal_admin_prep_proceso({{ $processs->id }})"
-                                                        class="dropdown-item" data-placement="top"
-                                                        title="Ver detalles">
-                                                        <i class="fas fa-bucket"></i> Administración de Baldes
-                                                    </a>
-                                                {{-- @endcan --}}
-                                                <a wire:click.prevent="$emit('alerta', 'eliminar_proceso_preparacion', {{ $processs->id }})"
-                                                    class="dropdown-item" data-placement="top"
-                                                    title="Eliminar">
-                                                    <i class="fas fa-trash"></i> Eliminar
-                                                </a>
-                                            </div>
-                                        </div>
-                                    @elseif($processs->estado == 0)
-                                        <button class="btn-sm btn-dark" wire:click="restaurar_proceso_preparacion({{ $processs->id }})"><i class="fas fa-undo"></i> Restaurar </button>
-                                    @endif
-                                </td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
-            <div class="d-flex justify-content-center">
-                {{ $procesos_preparacion->links() }}
-            </div>
-        @else
-            <p class="text-danger text-center">No hay registros.</p>
-        @endif
     </div>
 </div>

@@ -40,7 +40,7 @@ class DetalleSalidasDeMolino extends Model
 
     public function detalle_proceso_preparacion()
     {
-        return $this->hasOne(DetalleProcesoPreparacion::class, 'detalle_proceso_preparacion_id');
+        return $this->belongsTo(DetalleProcesoPreparacion::class, 'detalle_proceso_preparacion_id');
     }
 
     

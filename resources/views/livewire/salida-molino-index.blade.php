@@ -195,9 +195,9 @@
                             <br>
                             <button type="button" class="btn btn-danger" wire:click="limpiar_balde">LIMPIAR</button>
                         </div>
-                        <div class="col-md-12">
+                        {{-- <div class="col-md-12">
                             <p>{{json_encode($LISTA_DETALLE_PREPARACION)}}</p>
-                        </div>
+                        </div> --}}
                         <div class="col-md-12">
                             @if(count($lista_de_baldes) > 0)
                                 <div class="table-responsive-xl">
@@ -359,7 +359,7 @@
                                         <b>Sabor</b>
                                     </label>
                                 </div>
-                                <select class="form-control @error('ed_sabor') border-danger @enderror" id="ed_sabor" wire:model="ed_sabor" wire:change="on_change_sabor" disabled>
+                                <select class="form-control @error('ed_sabor') border-danger @enderror" id="ed_sabor" wire:model="ed_sabor" wire:change="on_update_preparation" disabled>
                                     <option value="">Seleccione sabor</option>
                                     @foreach ($LISTA_DE_SABORES as $sab)
                                         <option value="{{$sab}}">{{ $sab }}</option>
@@ -432,6 +432,98 @@
 
                     </div>
                     <hr>
+                    <div class="row">
+                        <div class="col-md-3">
+                            <label class="input-group-text" for="edit_despacho_id" title="código preparación .:: fecha preparación .:: observación de preparación">
+                                <b>Preparación</b>
+                            </label>
+                            <select class="form-control " id="edit_despacho_id" wire:model="edit_despacho_id" wire:change="on_change_edit_despacho_id"> {{-- on_change_det_despacho_id --}}
+                                <option value="">Seleccione preparación</option>
+                                    @foreach ($ed_LISTA_PREPARACION as $prepar)
+                                        <option value="{{$prepar['id_proceso_preparacion']}}">{{ $prepar['codigo'] }} .:: {{ $prepar['fecha'] }} .:: {{ $prepar['observacion'] }}</option>
+                                    @endforeach
+                            </select>
+                            @error('edit_despacho_id')
+                                <span class="text-danger">{{ $message }}</span>
+                            @enderror
+                        </div>
+                        <div class="col-md-3">
+                            <label class="input-group-text" for="edit_detalle_balde_id" title="nro. de balde .:: kg. de balde .:: observación de balde">
+                                <b>Balde</b>
+                            </label>
+                            <select class="form-control " id="edit_detalle_balde_id" wire:model="edit_detalle_balde_id">
+                                <option value="">Seleccione Balde</option>
+                                    @foreach ($ed_LISTA_DETALLE_BALDES_DE_PREPARACION as $prep_balde)
+                                        <option value="{{$prep_balde['id_det_preparacion']}}">{{ $prep_balde['nro_balde'] }} .:: {{ $prep_balde['kg_balde'] }} kg. .:: {{ $prep_balde['observacion_det_preparacion'] }} .:: {{ $prep_balde['estado'] }} .:: {{$prep_balde['codigo']}}</option>
+                                    @endforeach
+                            </select>
+                            @error('edit_detalle_balde_id')
+                                <span class="text-danger">{{ $message }}</span>
+                            @enderror
+                        </div>
+                        <div class="col-md-3">
+                            <button type="button" class="btn btn-primary" wire:click="agregar_balde_editar">AGREGAR</button>
+                            <br>
+                            <button type="button" class="btn btn-danger" wire:click="editar_limpiar_balde">LIMPIAR</button>
+                        </div>
+
+                        <div class="col-md-12">
+                            @if(count($list_editar_det_sal_mol) > 0)
+                                <div class="table-responsive-xl">
+                                    <table class="table table-sm text-sm table-striped">
+                                        <thead>
+                                            <tr>
+                                                <th>Fecha</th>
+                                                <th>Nro de balde</th>
+                                                <th>Kg.</th>
+                                                <th>Código de preparación</th>
+                                                <th></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @php
+                                                $total_baldes = 0;
+                                                $total_kg = 0;
+                                            @endphp
+                                            @foreach($list_editar_det_sal_mol as $bald)
+                                                <li>{{json_encode($bald)}}</li>
+                                                @php
+                                                    #$total_kg += $bal['kg_balde'];
+                                                @endphp
+                                                <tr>
+                                                    <td>{{$bald->detalle_proceso_preparacion->fecha}}</td>
+                                                    <td>{{$bald->detalle_proceso_preparacion->nro_balde}}</td>
+                                                    <td>{{$bald->detalle_proceso_preparacion->kg_balde}} kg.</td>
+                                                    <td>{{$bald->detalle_proceso_preparacion->proceso_preparacion->codigo}}</td>
+                                                    <td>
+                                                        <a class="btn" wire:click.prevent="$emit('alerta', 'eliminar_balde_editar', {{ $bald->id }})"  title="Quitar balde">
+                                                            <i class="fas fa-trash text-danger"></i>
+                                                        </a>
+                                                    </td>
+                                                </tr>
+                                            @endforeach
+                                            <tfoot>
+                                                <tr>
+                                                    <td colspan="2">Cantidad de baldes: <b>{{$total_baldes}}</b></td>
+                                                    <td colspan="2">Total Kilogramos: <b>{{$total_kg}}</b></td>
+                                                </tr>
+                                            </tfoot>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            @else
+                                <p class="text-danger">Sin baldes asignados.</p>
+                            @endif
+                            @error('ed_cantidad_baldes')
+                                <span class="text-danger">{{ $message }}</span>
+                            @enderror
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        @error('ed_id')
+                                <span class="text-danger">{{ $message }}</span> <br>
+                        @enderror
+                    </div>
                 </div>
                 <div class="modal-footer d-flex justify-content-center">
                     <button type="button" class="btn btn-danger" wire:click="close_modal_editar_salida_mol">CANCELAR</button>
@@ -439,7 +531,7 @@
                 </div>
             </div>
         @else 
-            {{-- -------------- MAIN ---------------------- --}}
+            {{-- -------------- MAIN ------------------------}}
             <div class="row">
                 <div class="col-md-12">
                     <h3 class="text-center">SALIDAS DE MOLINO</h3>
@@ -499,6 +591,22 @@
                         </div>
                     @endif
                 </div>
+
+                <div class="col-md-3">
+                    @if($statusMes && $statusDia && $dia !== "" && count($salidas_molino) > 0)
+                        <div class="input-group mb-2 ms-5">
+                            {{-- <div class="input-group-prepend">
+                                <label class="input-group-text" for="mes">
+                                    <i class="fas fa-calendar pe-1"></i>
+                                    <b></b>
+                                </label>
+                            </div> --}}
+                            <a type="button" class="btn btn-success text-white" 
+                                target="_blank" href="{{ route('salida_de_molino.pdf', ['fecha' => $anio .'-'. $mes .'-'. $dia])}}">GENERAR PDF</a>
+                        </div>
+                    @endif
+                </div>
+
             </div>
     
     
@@ -532,7 +640,7 @@
                                     <td>{{ $salda_molino->fecha }}</td>
                                     <td>{{ $salda_molino->turno }}</td>
                                     <td>{{ $salda_molino->sabor }}</td>
-                                    <td>{{ count($salda_molino->detalle_salida_molinos)}}</td>
+                                    <td>{{ count($salda_molino->detalle_salida_molinos) }}</td>
                                     <td>{{ $salda_molino->total_aprox }}</td>
                                     <td>{{ $salda_molino->recepcionista->username }}</td>
                                     <td>{{ $salda_molino->maquina->nombre }}</td>
@@ -568,7 +676,7 @@
                                                                 }
                                                             }
                                                         @endphp
-                                                        @if($editar)
+                                                       {{--  @if($editar) --}}
                                                             <a wire:click="open_modal_editar_salida_mol({{ $salda_molino->id }})"
                                                                 class="dropdown-item" data-placement="top"
                                                                 title="Editar {{ $salda_molino->codigo }}">
@@ -579,7 +687,7 @@
                                                                 title="Eliminar">
                                                                 <i class="fas fa-trash"></i> Eliminar
                                                             </a>
-                                                        @endif
+                                                        {{-- @endif --}}
                                                     {{-- @endcan --}}
                                                 </div>
                                             </div>

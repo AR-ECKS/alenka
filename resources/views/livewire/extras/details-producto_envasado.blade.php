@@ -17,7 +17,13 @@
                 <div class="row">
                     <div class="col-md-3"> <b>Fecha:</b> {{$detalle_producto_envasado->fecha}} </div>
                     <div class="col-md-3"> <b>Máquina: </b> {{$detalle_producto_envasado->maquina->nombre}}</div>
-                    <div class="col-md-3"> <b>Encargado: </b> {{$detalle_producto_envasado->encargado->username}}</div>
+                    <div class="col-md-3"> <b>Encargado: </b> 
+                        @if(is_null($detalle_producto_envasado->encargado))
+                            <span class="text-danger">Sin operador</span>
+                        @else
+                            {{$detalle_producto_envasado->encargado->username}}
+                        @endif
+                    </div>
                     <div class="col-md-3"> <b>Sabor: </b> {{$detalle_producto_envasado->sabor}}</div>
 
                     <div class="col-md-3"> <b>Saldo anterior: </b> {{$detalle_producto_envasado->caja_cajas}}</div>
@@ -31,15 +37,16 @@
             </div>
             <div class="tab-pane fade" id="pills-profile" role="tabpanel" aria-labelledby="pills-profile-tab">
                 <div class="row">
-                    <div class="col-md-3">Fecha: {{$detalle_producto_envasado->salida_de_molino->fecha}} </div>
-                    <div class="col-md-3"><b>Máquina:</b> {{$detalle_producto_envasado->salida_de_molino->maquina->nombre}} </div>
-                    <div class="col-md-3"> <b>recepcionista: </b> {{$detalle_producto_envasado->salida_de_molino->recepcionista->username}}</div>
-                    <div class="col-md-3"> <b>Sabor: </b> {{$detalle_producto_envasado->salida_de_molino->sabor}}</div>
+                    @if($detalle_producto_envasado->salida_de_molino)
+                        <div class="col-md-3">Fecha: {{$detalle_producto_envasado->salida_de_molino->fecha}} </div>
+                        <div class="col-md-3"><b>Máquina:</b> {{$detalle_producto_envasado->salida_de_molino->maquina->nombre}} </div>
+                        <div class="col-md-3"> <b>recepcionista: </b> {{$detalle_producto_envasado->salida_de_molino->recepcionista->username}}</div>
+                        <div class="col-md-3"> <b>Sabor: </b> {{$detalle_producto_envasado->salida_de_molino->sabor}}</div>
 
-                    <div class="col-md-3"> <b>Cantidad de baldes: </b> {{count($detalle_producto_envasado->salida_de_molino->detalle_salida_molinos)}}</div>
-                    <div class="col-md-3"> <b>Kilogramos: </b> {{$detalle_producto_envasado->salida_de_molino->total_aprox}}</div>
-                    <div class="col-md-6"> <b>Observaciones: </b> {{$detalle_producto_envasado->salida_de_molino->observacion}}</div>
-
+                        <div class="col-md-3"> <b>Cantidad de baldes: </b> {{count($detalle_producto_envasado->salida_de_molino->detalle_salida_molinos)}}</div>
+                        <div class="col-md-3"> <b>Kilogramos: </b> {{$detalle_producto_envasado->salida_de_molino->total_aprox}}</div>
+                        <div class="col-md-6"> <b>Observaciones: </b> {{$detalle_producto_envasado->salida_de_molino->observacion}}</div>
+                    @endif
                 </div>
             </div>
             <div class="tab-pane fade" id="pills-contact" role="tabpanel" aria-labelledby="pills-contact-tab">Lorem ipsum dolor, sit amet consectetur adipisicing elit. Distinctio blanditiis asperiores, corrupti qui, cumque dolores at voluptatem placeat pariatur nostrum, illo quia doloremque minus itaque error ex doloribus! Odio, exercitationem!</div>
