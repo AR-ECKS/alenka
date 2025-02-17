@@ -8,6 +8,7 @@ use App\Models\Produccion;
 use Illuminate\Http\Request;
 use App\Models\Materia_prima;
 use Carbon\Carbon;
+use Carbon\Exceptions\InvalidFormatException;
 use App\Models\Despacho;
 use App\Models\User;
 use App\Models\Proceso;
@@ -35,12 +36,21 @@ class ProduccionController extends Controller
 
     public function reporte_pdf_salida_molino($fecha = null){
         $titulo = 'Salida de Molino';
-        $fecha_car = Carbon::create($fecha);
+        #$fecha_car = Carbon::create($fecha);
+        $fecha_car = null;
+        try {
+            $fecha_car = Carbon::create($fecha);
+        } catch (InvalidFormatException $e) {
+            //echo "La fecha no es válida.";
+            return;
+        }
         $salidas_mol = SalidasDeMolino::where('fecha', $fecha)
             ->where('estado', '<>', 0)
             ->orderBy('turno')->get();
         if(count($salidas_mol) > 0){
             $pdf = new PlantillaSalidaDeMolino();
+            $pdf->SetFechaReporte($fecha_car->locale('es')->isoFormat('dddd, D \d\e MMMM')); #'DD-MM-YY'
+            $pdf->SetAnio($fecha_car->isoFormat('YYYY'));
             $pdf->AddPage();
             $nombre_archivo = $titulo . ' '. $fecha_car->locale('es')->isoFormat('dddd, YYYY-MM-DD') .'.pdf';
 
@@ -53,8 +63,9 @@ class ProduccionController extends Controller
             foreach($salidas_mol as $salida){
                 $pdf->setFont('Arial', '', 6);
                 # fecha
+                $fech = Carbon::create($salida->fecha);
                 $pdf->SetXY(5, $pdf->ALTURA_DATOS + ($contador * $pdf->ALTURA_CELDA));
-                $pdf->Cell(15, $pdf->ALTURA_CELDA, utf8_decode( $salida->fecha), $borde_celda, 0, 'L');
+                $pdf->Cell(15, $pdf->ALTURA_CELDA, utf8_decode( $fech->isoFormat('DD-MM-YYYY') ), $borde_celda, 0, 'L');
 
                 # encargado de envasados
                 $pdf->Cell(35, $pdf->ALTURA_CELDA, utf8_decode( '' ), $borde_celda, 0, 'L');
@@ -87,6 +98,7 @@ class ProduccionController extends Controller
                 $pdf->Cell(25, $pdf->ALTURA_CELDA, utf8_decode( '' ), $borde_celda, 0, 'C');
 
                 # observaciones
+                $pdf->setFont('Arial', '', 5);
                 $pdf->MultiCell(40, $pdf->ALTURA_CELDA , utf8_decode( $salida->observacion ), 1, 'L');
 
 

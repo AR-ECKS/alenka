@@ -434,6 +434,16 @@
                         </div>
                     @endif
                 </div>
+
+                <div class="col-md-3">
+                    @if($statusMes && $statusDia && $dia !== "" && count($productos_envasados) > 0)
+                        <div class="input-group mb-2 ms-5">
+                            <a type="button" class="btn btn-success text-white" 
+                                target="_blank" href="{{ route('registro_productos_envasados.pdf', ['fecha' => $anio .'-'. $mes .'-'. $dia])}}">GENERAR PDF</a>
+                        </div>
+                    @endif
+                </div>
+
             </div>
     
             @if(count($productos_envasados) > 0)
@@ -592,11 +602,13 @@
                                                             </a>
                                                         @endif
     
-                                                        {{-- <a wire:click.prevent="$emit('alerta', 'eliminar_maquina', {{ $prod_env->id }})"
-                                                            class="dropdown-item" data-placement="top"
-                                                            title="Eliminar">
-                                                            <i class="fas fa-trash"></i> Eliminar
-                                                        </a> --}}
+                                                        @if(count($prod_env->salidas_de_molino) == 0 && is_null($prod_env->balde_saldo_anterior))
+                                                            <a wire:click.prevent="$emit('alerta', 'eliminar_producto_envasado', {{ $prod_env->id }})"
+                                                                class="dropdown-item" data-placement="top"
+                                                                title="Eliminar">
+                                                                <i class="fas fa-trash"></i> Eliminar
+                                                            </a>
+                                                        @endif
                                                     {{-- @endcan --}}
                                                 </div>
                                             </div>

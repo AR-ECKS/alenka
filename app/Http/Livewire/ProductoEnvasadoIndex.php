@@ -380,7 +380,7 @@ class ProductoEnvasadoIndex extends Component
 
     private function get_disponibles_salidas_de_molino(){
         if($this->operation == 'edit_baldes' && $this->producto_envasado_balde){
-            return SalidasDeMolino::select(
+            $consulta = SalidasDeMolino::select(
                 'salidas_de_molino.id',
                 'salidas_de_molino.codigo',
                 'salidas_de_molino.fecha',
@@ -408,15 +408,20 @@ class ProductoEnvasadoIndex extends Component
             ->where('salidas_de_molino.estado', '<>', 0)
             ->where('salidas_de_molino.fecha', '<=', $this->producto_envasado_balde->fecha)
             ->where('salidas_de_molino.sabor', $this->producto_envasado_balde->sabor)
-            ->where('salidas_de_molino.maquina_id', $this->producto_envasado_balde->maquina_id)
-            ->whereNull('salidas_de_molino.producto_envasado_id')
+            ->where('salidas_de_molino.maquina_id', $this->producto_envasado_balde->maquina_id);
+            # que sea el mismo usuario receptor o nulll
+            if(!is_null($this->producto_envasado_balde->encargado_id)){
+                $consulta->where('salidas_de_molino.encargado_id', $this->producto_envasado_balde->encargado_id);
+            }
+            
+            $consulta->whereNull('salidas_de_molino.producto_envasado_id');
             /* ->whereNotNull('tabla_saldo.balde_sobro_del_dia')
             ->where(function($query){
                 $query->whereNull('salidas_de_molino.producto_envasado_id');
                 ->orWhere('salidas_de_molino.id', $this->producto_envasado_balde->balde_saldo_anterior);
             }) */
-           ->orderBy('salidas_de_molino.fecha', 'DESC')
-            ->get();
+            return $consulta->orderBy('salidas_de_molino.fecha', 'DESC')
+                ->get();    
         } else {
             return [];
         }
@@ -579,6 +584,26 @@ class ProductoEnvasadoIndex extends Component
                 DB::rollBack();
                 $this->emit('error', 'Error al cambiar estado. '. $e->getMessage());
             }
+        }
+    }
+
+    # se elimina un producto envasado, cuando no tiene salidas de molino
+    public function eliminar_producto_envasado($id){
+        try{
+            DB::beginTransaction();
+            $producto_envasado = ProductosEnvasados::where('id', $id)->first();
+            if(count($producto_envasado->salidas_de_molino) > 0){
+                $this->emit('error', 'Para eliminar: NO DEBE CONTENER BALDES.');
+            } else {
+                $producto_envasado->estado = 0;
+                #$producto_envasado->id_user = Auth::id();
+                $producto_envasado->save();
+                DB::commit();
+                $this->emit('success', 'Se ha eliminado el producto envasado exitosamente.');
+            }
+        } catch(\Exception $e){
+            DB::rollBack();
+            $this->emit('error', 'Error al intentar eliminar producto envasado. '. $e->getMessage());
         }
     }
 }

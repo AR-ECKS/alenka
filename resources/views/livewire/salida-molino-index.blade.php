@@ -152,7 +152,7 @@
                                         <b>Fecha</b>
                                     </label>
                                 </div>
-                                <input class="form-control @error('fecha') border-danger @enderror" type="date" wire:model="fecha" id="fecha" disabled>
+                                <input class="form-control @error('fecha') border-danger @enderror" type="date" wire:model="fecha" id="fecha" wire:change="on_change_sabor" {{-- disabled --}}>
                             </div>
                             @error('fecha')
                                 <span class="text-danger">{{ $message }}</span>

@@ -113,6 +113,7 @@ Route::middleware('auth')->group(function () {
 
     # pdf
     Route::get('admin/pdf_reporte_salida_molino/{fecha}', [ProduccionController::class, 'reporte_pdf_salida_molino'])->name('salida_de_molino.pdf');
+    Route::get('admin/pdf_reporte_salida_molino/{fecha}', [ProductosEnvasadosController::class, 'reporte_pdf_productos_envasados'])->name('registro_productos_envasados.pdf');
 });
 
 // api

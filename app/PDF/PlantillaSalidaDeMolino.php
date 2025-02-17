@@ -7,7 +7,7 @@ use Codedge\Fpdf\Fpdf\Fpdf;
 class PlantillaSalidaDeMolino extends Fpdf {
 
     protected $titulo = 'SALIDAS DE MOLINO';
-    private $borderDev = 1; # solo para desarrollo
+    private $borderDev = 0; # solo para desarrollo = 1
 
     public $ALTURA_DATOS = 38;
     public $ALTURA_CELDA = 4.9;
@@ -15,6 +15,8 @@ class PlantillaSalidaDeMolino extends Fpdf {
     # atributes
     private $TOTAL_BALDES = '';
     private $TOTAL_PARA_PICAR = '';
+    private $FECHA_REPORTE = '';
+    PRIVATE $ANIO_REPORTE = '';
 
     function __construct(){
         parent::__construct('L', 'mm', 'Letter'); #carta
@@ -33,9 +35,13 @@ class PlantillaSalidaDeMolino extends Fpdf {
         $this->SetFont('Arial', 'B', 10);
         $this->Cell(90, 5, utf8_decode('MES: '. str_pad('', 60, '.')), $this->borderDev, 1, 'L');
 
+        $this->SetXY(40, 18.4);
+        $this->SetFont('Arial', '',10);
+        $this->Cell(80, 5, utf8_decode($this->FECHA_REPORTE), $this->borderDev, 1, 'L');
+
         $this->SetXY(140, 19);
         $this->SetFont('Arial', 'B', 14);
-        $this->Cell(40, 5, utf8_decode('2023'), $this->borderDev, 1, 'C');
+        $this->Cell(40, 5, utf8_decode( $this->ANIO_REPORTE/* '2023' */), $this->borderDev, 1, 'C');
 
         # ENCABEZADOS thead > th
 
@@ -89,6 +95,14 @@ class PlantillaSalidaDeMolino extends Fpdf {
 
     public function SetTotalParaPicar($val = ''){
         $this->TOTAL_PARA_PICAR = $val;
+    }
+
+    public function SetFechaReporte($val = ''){
+        $this->FECHA_REPORTE = $val;
+    }
+
+    public function SetAnio($val =''){
+        $this->ANIO_REPORTE = $val;
     }
     
 }

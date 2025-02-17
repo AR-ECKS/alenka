@@ -245,6 +245,9 @@ class SalidaMolinoIndex extends Component
             'cantidad_baldes'
         ]);
         $this->limpiar_balde();
+        $this->LISTA_DETALLE_PREPARACION = [];
+        $this->LISTA_DETALLE_BALDES_DE_PREPARACION = [];
+        $this->lista_de_baldes = [];
         $this->resetValidation();
     }
 
@@ -303,23 +306,29 @@ class SalidaMolinoIndex extends Component
         if(is_null($this->sabor) || $this->sabor==""){
             $this->LISTA_DETALLE_PREPARACION = [];
         } else {
-            $this->LISTA_DETALLE_PREPARACION = DetalleSalidasDeMolino::select(
+            DB::statement("CREATE TEMPORARY TABLE temp_detalle_salidas_de_molino
+                        SELECT * 
+                        FROM detalle_salidas_de_molino
+                        WHERE estado <> 0"
+            );
+
+            $this->LISTA_DETALLE_PREPARACION = DetalleProcesoPreparacion::select(
                     'proceso_preparacion.id AS id_proceso_preparacion',
                     'despachos.sabor',
                     'proceso_preparacion.codigo',
                     'proceso_preparacion.fecha',
                     'proceso_preparacion.observacion'
                 )
-                ->rightJoin('detalle_proceso_preparacion', 'detalle_proceso_preparacion.id', '=', 'detalle_salidas_de_molino.detalle_proceso_preparacion_id')
+                ->leftJoin('temp_detalle_salidas_de_molino', 'temp_detalle_salidas_de_molino.detalle_proceso_preparacion_id', '=', 'detalle_proceso_preparacion.id')
                 ->join('proceso_preparacion', 'proceso_preparacion.id', '=', 'detalle_proceso_preparacion.proceso_preparacion_id')
                 ->join('despachos', 'despachos.id', '=', 'proceso_preparacion.despacho_id')
                 ->where('despachos.sabor', '=', $this->sabor)
-                ->where(function($query){
-                    $query->whereNull('detalle_salidas_de_molino.detalle_proceso_preparacion_id')
-                        ->orWhere('detalle_salidas_de_molino.estado', '=', 0);
-                })
-                # sin eliminados
+                
+                # excluir los eliminados
                 ->where('detalle_proceso_preparacion.estado', '<>', 0)
+                ->where('proceso_preparacion.estado', '<>', 0)
+
+                ->whereNull('temp_detalle_salidas_de_molino.detalle_proceso_preparacion_id')
 
                 # que la fecha de preparacion sea menor o igual 
                 ->where('proceso_preparacion.fecha' , '<=', $this->fecha)
@@ -343,7 +352,13 @@ class SalidaMolinoIndex extends Component
                 }
             }
 
-            $consulta = DetalleSalidasDeMolino::select(
+            DB::statement("CREATE TEMPORARY TABLE temp_detalle_salidas_de_molino
+                        SELECT * 
+                        FROM detalle_salidas_de_molino
+                        WHERE estado <> 0"
+            );
+
+            $consulta = DetalleProcesoPreparacion::select(
                     'proceso_preparacion.id AS id_proceso_preparacion',
                     'proceso_preparacion.codigo',
                     'proceso_preparacion.fecha',
@@ -356,18 +371,16 @@ class SalidaMolinoIndex extends Component
                     'nro_balde',
                     'detalle_proceso_preparacion.estado'
                 )
-                ->rightJoin('detalle_proceso_preparacion', 'detalle_proceso_preparacion.id', '=', 'detalle_salidas_de_molino.detalle_proceso_preparacion_id')
+                ->leftJoin('temp_detalle_salidas_de_molino', 'temp_detalle_salidas_de_molino.detalle_proceso_preparacion_id', '=', 'detalle_proceso_preparacion.id')
                 ->join('proceso_preparacion', 'proceso_preparacion.id', '=', 'detalle_proceso_preparacion.proceso_preparacion_id')
                 #->join('despachos', 'despachos.id', '=', 'proceso_preparacion.despacho_id')
                 ->where('proceso_preparacion.id', '=', $this->det_despacho_id)
-                ->where(function($query){
-                    $query->whereNull('detalle_salidas_de_molino.detalle_proceso_preparacion_id')
-                        ->orWhere('detalle_salidas_de_molino.estado', '=', 0);
-                });
-                
-                # excluir los baldes que esren estado 0
-                $consulta->where('detalle_proceso_preparacion.estado', '<>', 0);
-                #$consulta->where('proceso_preparacion.estado', '<>', 0);
+
+                # excluir los eliminados
+                ->where('detalle_proceso_preparacion.estado', '<>', 0)
+                ->where('proceso_preparacion.estado', '<>', 0)
+
+                ->whereNull('temp_detalle_salidas_de_molino.detalle_proceso_preparacion_id');
 
                 # que la fecha de preparacion sea menor o igual 
                 $consulta->where('proceso_preparacion.fecha' , '<=', $this->fecha)
@@ -506,6 +519,8 @@ class SalidaMolinoIndex extends Component
             'ed_cantidad_baldes'
         ]);
         $this->editar_limpiar_balde();
+        $this->ed_LISTA_PREPARACION = [];
+        $this->ed_LISTA_DETALLE_BALDES_DE_PREPARACION = [];
         $this->resetValidation();
     }
 
@@ -636,23 +651,29 @@ class SalidaMolinoIndex extends Component
         if(is_null($this->ed_sabor) || $this->ed_sabor==""){
             $this->ed_LISTA_PREPARACION = [];
         } else {
-            $this->ed_LISTA_PREPARACION = DetalleSalidasDeMolino::select(
+            DB::statement("CREATE TEMPORARY TABLE temp_detalle_salidas_de_molino
+                        SELECT * 
+                        FROM detalle_salidas_de_molino
+                        WHERE estado <> 0"
+            );
+
+            $this->ed_LISTA_PREPARACION = DetalleProcesoPreparacion::select(
                     'proceso_preparacion.id AS id_proceso_preparacion',
                     'despachos.sabor',
                     'proceso_preparacion.codigo',
                     'proceso_preparacion.fecha',
                     'proceso_preparacion.observacion'
                 )
-                ->rightJoin('detalle_proceso_preparacion', 'detalle_proceso_preparacion.id', '=', 'detalle_salidas_de_molino.detalle_proceso_preparacion_id')
+                ->leftJoin('temp_detalle_salidas_de_molino', 'temp_detalle_salidas_de_molino.detalle_proceso_preparacion_id', '=', 'detalle_proceso_preparacion.id')
                 ->join('proceso_preparacion', 'proceso_preparacion.id', '=', 'detalle_proceso_preparacion.proceso_preparacion_id')
                 ->join('despachos', 'despachos.id', '=', 'proceso_preparacion.despacho_id')
                 ->where('despachos.sabor', '=', $this->ed_sabor)
-                ->where(function($query){
-                    $query->whereNull('detalle_salidas_de_molino.detalle_proceso_preparacion_id')
-                        ->orWhere('detalle_salidas_de_molino.estado', '=', 0);
-                })
+        
                 # sin eliminados
                 ->where('detalle_proceso_preparacion.estado', '<>', 0)
+                ->where('proceso_preparacion.estado', '<>', 0)
+
+                ->whereNull('temp_detalle_salidas_de_molino.detalle_proceso_preparacion_id')
 
                 # que la fecha de preparacion sea menor o igual 
                 ->where('proceso_preparacion.fecha' , '<=', $this->ed_fecha)
@@ -667,15 +688,15 @@ class SalidaMolinoIndex extends Component
         #$this->id_balde_detalle_proceso_preparacion = "";
         if(is_null($this->edit_despacho_id) || $this->edit_despacho_id==""){
             $this->ed_LISTA_DETALLE_BALDES_DE_PREPARACION = [];
+            $this->ed_LISTA_DETALLE_BALDES_DE_PREPARACION = [];
         } else {
-            /* DB::statement(
-                DB::raw("CREATE TEMPORARY TABLE temp_detalle_salidas_de_molino
+            DB::statement("CREATE TEMPORARY TABLE temp_detalle_salidas_de_molino
                         SELECT * 
                         FROM detalle_salidas_de_molino
-                        WHERE estado <> ?"), ['0']
-            ); */
-            $consulta = DetalleSalidasDeMolino::select(
-                    DB::raw("DISTINCT(detalle_salidas_de_molino.detalle_proceso_preparacion_id)"),
+                        WHERE estado <> 0"
+            );
+            $consulta = DetalleProcesoPreparacion::select(
+                    DB::raw("temp_detalle_salidas_de_molino.detalle_proceso_preparacion_id"),
                     'proceso_preparacion.id AS id_proceso_preparacion',
                     'proceso_preparacion.codigo',
                     'proceso_preparacion.fecha',
@@ -688,21 +709,15 @@ class SalidaMolinoIndex extends Component
                     'nro_balde',
                     'detalle_proceso_preparacion.estado'
                 )
-                ->rightJoin('detalle_proceso_preparacion', 'detalle_proceso_preparacion.id', '=', 'detalle_salidas_de_molino.detalle_proceso_preparacion_id')
+                ->leftJoin('temp_detalle_salidas_de_molino', 'temp_detalle_salidas_de_molino.detalle_proceso_preparacion_id', '=', 'detalle_proceso_preparacion.id')
                 ->join('proceso_preparacion', 'proceso_preparacion.id', '=', 'detalle_proceso_preparacion.proceso_preparacion_id')
                 #->join('despachos', 'despachos.id', '=', 'proceso_preparacion.despacho_id')
-                ->where('proceso_preparacion.id', '=', $this->edit_despacho_id)
+                ->where('proceso_preparacion.id', '=', $this->edit_despacho_id);
                 
-                #->whereNull('detalle_salidas_de_molino.detalle_proceso_preparacion_id');
-                #->where('detalle_salidas_de_molino.estado', '<>', 0)
-                ->where(function($query){
-                    $query->whereNull('detalle_salidas_de_molino.detalle_proceso_preparacion_id')
-                        ->orWhere('detalle_salidas_de_molino.estado', '=', 0);
-                });
-                
-                # excluir los baldes que esren estado 0
-                $consulta->where('detalle_proceso_preparacion.estado', '<>', 0);
-                #$consulta->where('proceso_preparacion.estado', '<>', 0);
+                $consulta->where('detalle_proceso_preparacion.estado', '<>', 0)
+                    ->where('proceso_preparacion.estado', '<>', 0);
+
+                $consulta->whereNull('temp_detalle_salidas_de_molino.detalle_proceso_preparacion_id');
 
                 # que la fecha de preparacion sea menor o igual 
                 $consulta->where('proceso_preparacion.fecha' , '<=', $this->ed_fecha)
