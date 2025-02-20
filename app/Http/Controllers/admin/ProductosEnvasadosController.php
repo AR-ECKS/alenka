@@ -42,6 +42,25 @@ class ProductosEnvasadosController extends Controller
                 $pdf->AddPage();
                 $nombre_archivo = $titulo . ' '. $fecha_car->locale('es')->isoFormat('dddd, YYYY-MM-DD') .'.pdf';
 
+                $borde_celda = 1;
+
+                $tamanio_max_filas = 20;
+                $contador = 0;
+
+                $total_saldo_anterior = 0;
+                $total_cambio_de_maquina = 0;
+                $total_entrada_de_molino = 0;
+                $total_sobro_del_dia = 0;
+                $total_cajas = 0;
+                $total_bolsas = 0;
+
+                foreach ($registro_productos as $val) {
+                    # MAQ.
+                    $pdf->setFont('Arial', 'B', 6);
+                    $pdf->SetXY($pdf->START_X_ATTR['COL_1']['X'], $pdf->ALTURA_DATOS + ($contador * $pdf->ALTURA_CELDA));
+                    $pdf->Cell($pdf->START_X_ATTR['COL_1']['WIDTH'], $pdf->ALTURA_CELDA, utf8_decode( 'MAQ 1' ), $borde_celda, 0, 'L');
+                }
+
                 $pdf->Output('I', $nombre_archivo);
                 exit;
             } else {
