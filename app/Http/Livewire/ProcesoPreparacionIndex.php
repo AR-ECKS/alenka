@@ -43,9 +43,19 @@ class ProcesoPreparacionIndex extends Component
 
     private function get_despachos(){
         $fechaActual = now()->format('Y-m-d'); // Obtener la fecha actual en formato YYYY-MM-DD
-        return Despacho::where('estado', 1)
+        return Despacho::select(
+                'despachos.id',
+                'despachos.codigo',
+                'despachos.sabor',
+                'despachos.observacion',
+                'despachos.fecha',
+                'despachos.receptor',
+            )
+            ->leftJoin('proceso_preparacion', 'proceso_preparacion.despacho_id', '=', 'despachos.id')
+            #->where('despachos.estado', '<>', 0)
+            ->whereNull('proceso_preparacion.despacho_id')
             ->where('tipo', 1)
-            ->whereDate('created_at', $fechaActual)
+            ->whereDate('despachos.created_at', $fechaActual)
             ->get();
     }
 
@@ -112,7 +122,7 @@ class ProcesoPreparacionIndex extends Component
         $this->resetValidation();
     }
 
-    public function store_modal_crear_prep_proceso(){
+    public function store_modal_crear_prep_proceso($procesar = false){
         if($this->operation == 'create_proccess_preparation'){
             //$this->emit('mensaje', 'LISTO PARA VALIDAR');
             $this->validate();
@@ -133,6 +143,9 @@ class ProcesoPreparacionIndex extends Component
                 DB::commit();
                 $this->emit('success', 'Se ha creado exitosamente una nueva preparación');
                 $this->close_modal_crear_prep_proceso();
+                if($procesar){
+                    $this->open_modal_admin_prep_proceso($proceso_preparacion->id);
+                }
             } catch(\Exception $e){
                 DB::rollBack();
                 $this->emit('error', 'Error al crear la nueva preparación. '. $e->getMessage());
@@ -155,6 +168,7 @@ class ProcesoPreparacionIndex extends Component
         $this->total_kg = round( floatval($total_aprox), 2);
         $this->disponible_kg = $this->total_kg;
     }
+    
 
     /* *********************************************************** */
 
@@ -173,12 +187,6 @@ class ProcesoPreparacionIndex extends Component
             'kg_balde' => 'required|numeric|min:.1'. '|max:'.$max_kg,
             'd_observacion' => 'nullable|max:255',
             'd_fecha' => 'required|date'
-            /* 'codigo' => 'required|unique:proceso_preparacion,codigo|min:10',
-            'fecha' => 'required|date',
-            'total_kg' => 'required|numeric|min:0.1',
-            'disponible_kg' => 'required|numeric|min:0.1',
-            'despacho_id' => 'required',
-            'observacion' => 'nullable|string|max:255', */
         ];
     }
 
@@ -310,6 +318,21 @@ class ProcesoPreparacionIndex extends Component
     }
 
     /* ********************** END RULES ************************** */
+    public $det_proceso_preparacion = null;
+
+    public function open_modal_show_prep_proceso($id_proceso_preparacion){
+        $this->close_modal_admin_prep_proceso();
+        $this->det_proceso_preparacion = ProcesoPreparacion::where('id', $id_proceso_preparacion)->first();
+        if($this->det_proceso_preparacion){
+            $this->operation = 'view_proccess_preparation';
+        }
+    }
+
+    public function close_modal_show_prep_proceso(){
+        $this->operation = '';
+        $this->det_proceso_preparacion = null;
+    }
+    /* *********************************************************** */
 
     private function generarCodigoProceso()
     {

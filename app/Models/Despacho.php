@@ -55,4 +55,5 @@ class Despacho extends Model
     {
         return $this->belongsTo(User::class, 'receptor');
     }
+
 }

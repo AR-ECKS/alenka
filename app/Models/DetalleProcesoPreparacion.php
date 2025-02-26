@@ -47,4 +47,11 @@ class DetalleProcesoPreparacion extends Model
     {
         return $this->belongsTo(ProcesoPreparacion::class, 'proceso_preparacion_id');
     }
+
+    /* REVERSE */
+    public function detalle_salida_de_molino(){
+        return $this->hasOne(DetalleSalidasDeMolino::class, 'detalle_proceso_preparacion_id')
+            ->where('estado', '<>', 0);;
+    }
+    
 }
