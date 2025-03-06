@@ -5,35 +5,7 @@
 
     </div>
     <div class="card-body p-3">
-        {{-- <div class="float-right mt-3">
-            @can('crear_preparacion')
-                <a type="button" class="btn btn-primary text-white" href="{{ route('proceso.create') }}">
-                    <i class="fas fa-database"></i> Nueva preparación
-                </a>
-            @endcan
-        </div>
-        <br><br><br>
-        <div class="tab-content">
-            <div class="table-responsive-xl">
-                <table class="table table-sm text-sm table-striped">
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>Codigo</th>
-                            <th>Observacion</th>
-                            <th>Fecha</th>
-                            <th>Estado</th>
 
-                            <th class="text-right">Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-
-                    </tbody>
-                </table>
-
-            </div>
-        </div> --}}
     </div>
 
     @if($operation=='create_salida_molino')

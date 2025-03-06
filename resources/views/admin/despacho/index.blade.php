@@ -7,7 +7,7 @@
                     position: "center",
                     icon: "success",
                     title: "Operación Realizada con éxito",
-                    text: "{{ session('correcto')}}",
+                    text: "{{ session('correcto') }}",
                     showConfirmButton: false,
                     timer: 1500
                 });
@@ -22,24 +22,28 @@
                     position: "center",
                     icon: "error",
                     title: "ocurrio un error",
-                    text: "{{ session('error')}}",
+                    text: "{{ session('error') }}",
                     showConfirmButton: false,
                     timer: 1500
                 });
             });
         </script>
     @endif
-    <div class="container-fluid py-4">
+    <div class="container-fluid py-4 ">
         <div class="row">
             <div class="col-12">
                 <div class="card">
-                    <div class="card-header p-0 position-relative mt-n5 mx-3 z-index-2 ">
-
+                    <div class="card-header p-0 position-relative mt-n5 mx-3 z-index-2 py-2">
+                        <br>
+                        <h5 class="text-center text-white bg-gradient-to-r from-indigo-500 to-blue-500 py-3 rounded shadow-lg uppercase tracking-wide">
+                            DESPACHO DE MATERIA PRIMA
+                        </h3>
                     </div>
                     <div class="card-body p-3">
-                        <div class="text-center mt-5">
+
+                        <div class="text-center">
                             @can('crear_despacho')
-                                <a type="button" class="btn btn-danger text-white" href="{{ route('despacho.create') }}">
+                                <a type="button" class="btn btn-primary text-white" href="{{ route('despacho.create') }}">
                                     <i class="fas fa-database"></i> NUEVO DESPACHO A PREPARACIÓN
                                 </a>
                                 <a type="button" class="btn btn-success text-white" href="{{ route('despacho.creates') }}">
@@ -77,71 +81,70 @@
                                                 <td>{{ $item->fecha }}</td>
 
                                                 <td>{{ $item->codigo }}</td>
-                                                <td>{{ $item->user->name}}</td>
+                                                <td>{{ $item->user->name }}</td>
                                                 <td>{{ $receptores[$item->id] }}</td> <!-- Nombre del receptor -->
 
                                                 <td>{{ $item->observacion }}</td>
                                                 <td>
-                                                    @if ($item->estado == 1 ||  $item->estado == 2)
-                                                        <span class="badge bg-warning">Activo</span>
+                                                    @if ($item->estado == 1)
+                                                        <span class="badge bg-warning">Pendiente</span>
+                                                    @elseif ($item->estado == 2)
+                                                        <span class="badge bg-danger">Cancelado</span>
+                                                    @elseif ($item->estado == 0)
+                                                        <span class="badge bg-success">Completado</span>
                                                     @else
-                                                        <span class="badge bg-danger">Inactivo</span>
+                                                        <span class="badge bg-secondary">Desconocido</span>
+                                                        <!-- Opcional para manejar otros estados -->
                                                     @endif
-                                                <td class="td-actions text-right">
-                                                    @if ($item->estado == 1 ||  $item->estado == 2)
-                                                        <div class="dropdown">
-                                                            <a href="#" class="btn btn-info btn-sm dropdown-toggle"
-                                                                style="background: #007bff" item="button"
-                                                                id="dropdownMenuLink" data-toggle="dropdown"
-                                                                aria-haspopup="true" aria-expanded="false">
-                                                                <i class="fas fa-cog"></i> Acciones
-                                                            </a>
-                                                            <div class="dropdown-menu dropdown-menu-right">
-                                                                @can('ver_despacho')
-                                                                    <a href="{{ route('despacho.show', $item->id) }}"
-                                                                        title="View Despacho" class="dropdown-item"
-                                                                        data-toggle="tooltip" data-placement="top"
-                                                                        title="Ver detalles">
-                                                                        <i class="far fa-eye"> </i> Ver detalles
-                                                                    </a>
-                                                                @endcan
-                                                                @can('editar_despacho')
-                                                                    <a href="{{ route('despacho.edit', $item->id) }}"
-                                                                        title="Edit Despacho" class="dropdown-item"
-                                                                        data-toggle="tooltip" data-placement="top"
-                                                                        title="Editar">
-                                                                        <i class="fas fa-edit"> </i> Editar
-                                                                    </a>
-                                                                @endcan
 
-
-                                                                @can('eliminar_despacho')
-                                                                    <form action="{{ route('despacho.destroy', $item->id) }}"
-                                                                        method="POST" class="eliminate"
-                                                                        style="display: inline-block;">
-                                                                        @csrf
-                                                                        @method('DELETE')
-                                                                        <button type="submit"
-                                                                            class="dropdown-item esd delete-button"
-                                                                            data-toggle="tooltip" data-placement="top"
-                                                                            title="Eliminar">
-                                                                            <i class="fas fa-trash"></i> Eliminar
-                                                                        </button>
-                                                                    </form>
-                                                                @endcan
-
-                                                            </div>
-                                                        @else
-                                                            @can('restaurar_despacho')
-                                                                <a href="{{ route('despacho.reingresar', $item->id) }}"
-                                                                    class="btn-sm btn-dark" data-toggle="tooltip"
-                                                                    data-placement="top" title="Restaurar">
-                                                                    <i class="fas fa-undo"></i>
+                                                    <td class="td-actions text-right">
+                                                        @if ($item->estado == 1 || $item->estado == 2)
+                                                            <div class="dropdown">
+                                                                <a href="#" class="btn btn-info btn-sm dropdown-toggle"
+                                                                    style="background: #007bff" item="button"
+                                                                    id="dropdownMenuLink" data-toggle="dropdown"
+                                                                    aria-haspopup="true" aria-expanded="false">
+                                                                    <i class="fas fa-cog"></i> Acciones
                                                                 </a>
-                                                            @endcan
-                                                    @endif
-                            </div>
-                            </td>
+                                                                <div class="dropdown-menu dropdown-menu-right">
+                                                                    @can('ver_despacho')
+                                                                        <a href="{{ route('despacho.show', $item->id) }}"
+                                                                            title="View Despacho" class="dropdown-item"
+                                                                            data-toggle="tooltip" data-placement="top"
+                                                                            title="Ver detalles">
+                                                                            <i class="far fa-eye"> </i> Ver detalles
+                                                                        </a>
+                                                                    @endcan
+                                                                    @can('editar_despacho')
+                                                                        <a href="{{ route('despacho.edit', $item->id) }}"
+                                                                            title="Edit Despacho" class="dropdown-item"
+                                                                            data-toggle="tooltip" data-placement="top"
+                                                                            title="Editar">
+                                                                            <i class="fas fa-edit"> </i> Editar
+                                                                        </a>
+                                                                    @endcan
+                                                                    @can('eliminar_despacho')
+                                                                        <form action="{{ route('despacho.destroy', $item->id) }}"
+                                                                            method="POST" class="eliminate"
+                                                                            style="display: inline-block;">
+                                                                            @csrf
+                                                                            @method('DELETE')
+                                                                            <button type="submit"
+                                                                                class="dropdown-item esd delete-button"
+                                                                                data-toggle="tooltip" data-placement="top"
+                                                                                title="Eliminar">
+                                                                                <i class="fas fa-trash"></i> Eliminar
+                                                                            </button>
+                                                                        </form>
+                                                                    @endcan
+                                                                </div>
+                                                            </div>
+                                                        @elseif ($item->estado == 3)
+                                                            <!-- No hay botones ni acciones para el estado 3 -->
+                                                            <span class="badge bg-success">Completado</span>
+                                                        @endif
+                                                    </td>
+
                             </tr>
                             @endforeach
                             </tbody>

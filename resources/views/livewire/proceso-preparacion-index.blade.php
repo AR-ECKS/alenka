@@ -1,5 +1,5 @@
 <div>
-    <div class="float-right mt-3">
+    <div class="float-right">
         @if($operation == '')
             <a type="button" class="btn btn-primary text-white" wire:click="open_modal_crear_prep_proceso">
                 <i class="fas fa-database"></i> Nueva preparación
@@ -7,11 +7,13 @@
         @endif
     </div>
 
-    <br><br><br>
+    {{-- <br><br><br> --}}
     <div class="tab-content">
         @if($operation=='create_proccess_preparation')
-            <div class="card-body p-3">
-                <div class="modal-header">
+        <div class="modal fade show" style="display: block;" id="modalCrearPreparacion" >
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
                     <h5 class="modal-title mt-0 text-center">NUEVA PREPARACIÓN</h5>
                         <button type="button" class="btn btn-close" data-bs-dismiss="modal" aria-label="close" wire:click="close_modal_crear_prep_proceso"></button>
                 </div>
@@ -136,14 +138,12 @@
                 <div class="modal-footer d-flex justify-content-center">
                     <button type="button" class="btn btn-danger" wire:click="close_modal_crear_prep_proceso">CANCELAR</button>
                     <button type="button" class="btn btn-primary" wire:click="store_modal_crear_prep_proceso">GUARDAR</button>
-                    <button type="button" class="btn btn-primary" wire:click="">GUARDAR Y PROCESAR</button>
                 </div>
             </div>
         @elseif($operation == 'admin_proccess_preparation')
-            <div class="card-body p-3">
+            <div class="card-body">
                 <div class="modal-header">
                     <h5 class="modal-title mt-0 text-center">ADMINISTRACIÓN DE LA PREPARACIÓN</h5>
-                        <button type="button" class="btn btn-close" data-bs-dismiss="modal" aria-label="close" wire:click="close_modal_admin_prep_proceso"></button>
                 </div>
                 <div class="modal-body">
                     @if($adm_proceso_preparacion)
@@ -177,10 +177,12 @@
                                     <i class="fas fa-weight-scale"></i>
                                     <b>Kg.</b>
                                 </label>
-                                <input type="number" class="form-control @error('kg_balde') border-danger @enderror" id="kg_balde" wire:model="kg_balde">
-                                @error('kg_balde')
+                                <input type="number" class="form-control" id="kg_balde" wire:model="kg_balde">
+                                {{-- <input type="number" class="form-control @error('kg_balde') border-danger @enderror" id="kg_balde" wire:model="kg_balde"> --}}
+
+                                {{-- @error('kg_balde')
                                     <span class="text-danger">{{ $message }}</span>
-                                @enderror
+                                @enderror --}}
                             </div>
                             <div class="col-md-2">
                                 <label class="input-group-text" for="d_fecha">
@@ -204,8 +206,8 @@
                             </div>
                             <div class="col-md-2">
                                 @if($adm_proceso_preparacion->disponible_kg > 0)
-                                    <button type="button" class="btn btn-primary" wire:click="save_detalle_proceso_preparacion">GUARDAR</button>
-                                    <button type="button" class="btn btn-danger" wire:click="restore_detalles_baldes">LIMPIAR</button>
+                                    <button type="button" class="btn btn-success" wire:click="save_detalle_proceso_preparacion">AGREGAR</button>
+                                    {{-- <button type="button" class="btn btn-danger" wire:click="restore_detalles_baldes">LIMPIAR</button> --}}
                                 @endif
                             </div>
                         </div>
@@ -248,7 +250,7 @@
                     @endif
                 </div>
                 <div class="modal-footer d-flex justify-content-center">
-                    <button type="button" class="btn btn-danger" wire:click="close_modal_admin_prep_proceso">CANCELAR</button>
+                    <button type="button" class="btn btn-primary" wire:click="close_modal_admin_prep_proceso">GUARDAR</button>
                     {{-- <button type="button" class="btn btn-primary" wire:click="">GUARDAR Y PROCESAR</button> --}}
                 </div>
             </div>
@@ -307,7 +309,7 @@
                                                         <a wire:click="open_modal_admin_prep_proceso({{ $processs->id }})"
                                                             class="dropdown-item" data-placement="top"
                                                             title="Ver detalles">
-                                                            <i class="fas fa-bucket"></i> Administración de Baldes
+                                                            <i class="fas fa-bucket"></i> Adm. Baldes
                                                         </a>
                                                     {{-- @endcan --}}
                                                     <a wire:click.prevent="$emit('alerta', 'eliminar_proceso_preparacion', {{ $processs->id }})"

@@ -117,8 +117,16 @@ class ProcesoPreparacionIndex extends Component
             //$this->emit('mensaje', 'LISTO PARA VALIDAR');
             $this->validate();
             //$this->emit('mensaje', 'SE TERMINO DE VALIDAR');
-            try{
+            try {
                 DB::beginTransaction();
+
+                // Cambiar el estado del despacho de 1 a 0
+                $despacho = Despacho::find($this->despacho_id);
+                if ($despacho) {
+                    $despacho->estado = 0; // Asumiendo que el campo se llama 'estado'
+                    $despacho->save();
+                }
+
                 // guardar
                 $proceso_preparacion = new ProcesoPreparacion();
                 $proceso_preparacion->codigo = $this->codigo;
@@ -126,17 +134,19 @@ class ProcesoPreparacionIndex extends Component
                 $proceso_preparacion->despacho_id = $this->despacho_id;
                 $proceso_preparacion->total_kg = $this->total_kg;
                 $proceso_preparacion->disponible_kg = $this->disponible_kg;
-                $proceso_preparacion->observacion = is_null($this->observacion)? '': $this->observacion;
+                $proceso_preparacion->observacion = is_null($this->observacion) ? '' : $this->observacion;
                 $proceso_preparacion->id_user = Auth::id();
+
                 $proceso_preparacion->save();
 
                 DB::commit();
                 $this->emit('success', 'Se ha creado exitosamente una nueva preparación');
                 $this->close_modal_crear_prep_proceso();
-            } catch(\Exception $e){
+            } catch (\Exception $e) {
                 DB::rollBack();
-                $this->emit('error', 'Error al crear la nueva preparación. '. $e->getMessage());
+                $this->emit('error', 'Error al crear la nueva preparación. ' . $e->getMessage());
             }
+
         }
     }
 
@@ -170,7 +180,9 @@ class ProcesoPreparacionIndex extends Component
         return [
             'id_proceso_preparacion' => 'required|integer',
             'nro_balde' => 'required|integer|min:1',
-            'kg_balde' => 'required|numeric|min:.1'. '|max:'.$max_kg,
+            'kg_balde' => 'required|numeric|min:.1',
+            // 'kg_balde' => 'required|numeric|min:.1'. '|max:'.$max_kg,
+
             'd_observacion' => 'nullable|max:255',
             'd_fecha' => 'required|date'
             /* 'codigo' => 'required|unique:proceso_preparacion,codigo|min:10',
