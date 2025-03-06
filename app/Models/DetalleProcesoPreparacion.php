@@ -29,7 +29,7 @@ class DetalleProcesoPreparacion extends Model
 
     function user()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'id_user');
     }
 
     /* function detalle_despachos()

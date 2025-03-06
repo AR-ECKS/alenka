@@ -14,6 +14,7 @@ use App\Http\Controllers\admin\DespachoController;
 use App\Http\Controllers\admin\ProcesoController;
 use App\Http\Controllers\admin\MaquinaController;
 use App\Http\Controllers\admin\ProductosEnvasadosController;
+use App\Http\Controllers\admin\RegistroParaPicarController;
 use App\Models\Proceso;
 
 use App\Http\Controllers\admin\PreSalidaMolinoController;
@@ -110,10 +111,13 @@ Route::middleware('auth')->group(function () {
     Route::get('admin/pre_salida_molino/{id_proceso}', [PreSalidaMolinoController::class, 'index'])->name('preSalidaMolino');
     Route::get('admin/maquina', [MaquinaController::class, 'index'])->name('maquina.index');
     Route::get('admin/productos_envasados', [ProductosEnvasadosController::class, 'index'])->name('productosEnvasados.index');
+    Route::get('admin/inventario_productos_envasados', [ProductosEnvasadosController::class, 'index_inventario'])->name('inventarioProductosEnvasados.index');
+    Route::get('admin/registros_para_picar', [RegistroParaPicarController::class, 'index'])->name('registros_para_picar.index');
 
     # pdf
     Route::get('admin/pdf_reporte_salida_molino/{fecha}', [ProduccionController::class, 'reporte_pdf_salida_molino'])->name('salida_de_molino.pdf');
     Route::get('admin/pdf_reporte_productos_envasados/{fecha}', [ProductosEnvasadosController::class, 'reporte_pdf_productos_envasados'])->name('registro_productos_envasados.pdf');
+    Route::get('admin/pdf_inventario_productos_envasados/{anio?}/{mes?}/{dia?}', [ProductosEnvasadosController::class, 'reporte_pdf_inventario_prod_envasados'])->name('inventario_productos_envasados.pdf');
 });
 
 // api

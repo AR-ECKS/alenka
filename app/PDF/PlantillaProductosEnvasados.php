@@ -4,11 +4,13 @@ namespace App\PDF;
 
 use Codedge\Fpdf\Fpdf\Fpdf;
 
+use Illuminate\Support\Str;
+
 class PlantillaProductosEnvasados extends Fpdf {
     protected $TITULO = 'REGISTRO DE PRODUCTOS ENVASADOS ..../.../';
-    private $borderDev = 1; # solo para desarrollo = 1
+    private $borderDev = 0; # solo para desarrollo = 1
 
-    public $ALTURA_DATOS = 44;
+    public $ALTURA_DATOS = 44; # 44
     public $ALTURA_CELDA = 6.9;
 
     public $START_X = 9;
@@ -125,6 +127,13 @@ class PlantillaProductosEnvasados extends Fpdf {
     }
 
     public function Header(){
+        # insertar imagen
+        $image = Str::finish(public_path(), DIRECTORY_SEPARATOR) . 'img' . DIRECTORY_SEPARATOR . 'logo.png'; #public_path(). '/img/logo.png';
+        if(file_exists($image)){
+            $this->Image($image, 10, 5, 0, 18);
+            /* $this->Text(5, 5, 'Es'. $image); */
+        }
+
         $this->Line($this->START_X_ATTR['COL_1']['X'], 8, 345, 8);
 
         $this->Line($this->START_X_ATTR['COL_1']['X'], 8, $this->START_X_ATTR['COL_1']['X'], 20);
@@ -133,6 +142,19 @@ class PlantillaProductosEnvasados extends Fpdf {
         $this->SetXY(30, 10);
         $this->SetFont('Arial', 'B', 18);
         $this->Cell(0, 9, utf8_decode($this->TITULO), $this->borderDev, 1, 'C');
+
+        # dia mes año
+        $this->SetFont('Arial', '', 15);
+
+        $this->SetXY(245, 10);
+        $this->Cell(8, 7, utf8_decode($this->DIA), $this->borderDev, 1, 'C');
+
+        $this->SetXY(253, 10);
+        $this->Cell(7, 7, utf8_decode($this->MES), $this->borderDev, 1, 'C');
+
+        $this->SetFont('Arial', 'B', 15);
+        $this->SetXY(260, 10);
+        $this->Cell(15, 7, utf8_decode($this->ANIO), $this->borderDev, 1, 'L');
 
         # ENCABEZADOS thead > th
 

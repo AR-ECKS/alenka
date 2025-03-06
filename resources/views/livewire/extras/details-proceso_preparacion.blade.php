@@ -45,32 +45,233 @@
                                 @foreach($carac_proceso_preparacion->detalle_proceso_preparacion as $det_proceso)
                                     <div class="tab-pane fade {{$first? 'show active': ''}}" id="{{ $det_proceso->cod_pill }}" role="tabpanel" aria-labelledby="{{ $det_proceso->cod_pill }}-tab">
                                         @if($det_proceso->detalle_salida_de_molino)
-                                            <h5>Detalles de Salida de Molino</h5>
+                                            <div class="row">
+                                                <div class="col-md-12">
+                                                    <h5 class="text-center">Detalles de Salida de Molino</h5>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="input-group mb-2">
+                                                        <div class="input-group-prepend">
+                                                            <div class="input-group-text text-secondary">
+                                                                <i class="fa fa-calendar-check"></i> <span class="ms-1">Modificado</span>
+                                                            </div>
+                                                        </div>
+                                                        <span class="form-control text-secondary"> {{ $det_proceso->detalle_salida_de_molino->updated_at }}</span>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="input-group mb-2">
+                                                        <div class="input-group-prepend">
+                                                            <div class="input-group-text text-secondary">
+                                                                <i class="fa fa-user"></i> <span class="ms-1">Por</span>
+                                                            </div>
+                                                        </div>
+                                                        <span class="form-control text-secondary"> {{ $det_proceso->detalle_salida_de_molino->user->username }}</span>
+                                                    </div>
+                                                </div>
+                                                <hr>
+                                                <div class="col-md-6">
+                                                    @if($det_proceso->detalle_salida_de_molino->salida_molino)
+                                                        <div class="row">
+                                                            <div class="col-md-12">
+                                                                <h5 class="text-center">SALIDA DE MOLINO</h5>
+                                                            </div>
+                                                            <div class="col-md-6">
+                                                                <div class="input-group mb-2">
+                                                                    <div class="input-group-prepend">
+                                                                        <div class="input-group-text">
+                                                                            <i class="fa fa-lock"></i> <span class="ms-1">Código</span>
+                                                                        </div>
+                                                                    </div>
+                                                                    <span class="form-control"> {{ $det_proceso->detalle_salida_de_molino->salida_molino->codigo }}</span>
+                                                                </div>
+                                                            </div>
+
+                                                            <div class="col-md-6">
+                                                                <div class="input-group mb-2">
+                                                                    <div class="input-group-prepend">
+                                                                        <div class="input-group-text">
+                                                                            <i class="fa fa-calendar"></i> <span class="ms-1">Fecha</span>
+                                                                        </div>
+                                                                    </div>
+                                                                    @php 
+                                                                        $dia_ = '';
+                                                                        try {
+                                                                            $txt = Carbon\Carbon::create($det_proceso->detalle_salida_de_molino->salida_molino->fecha);
+                                                                            $dia_ = $txt->locale('es')->isoFormat(', dddd'); # dddd, D \d\e MMMM \d\e\l YYYY
+                                                                        } catch (\Exception $e) {
+                                                                            # nada
+                                                                        }
+                                                                    @endphp
+                                                                    <span class="form-control"> {{ $det_proceso->detalle_salida_de_molino->salida_molino->fecha . $dia_ }}</span>
+                                                                </div>
+                                                            </div>
+
+                                                            <div class="col-md-6">
+                                                                <div class="input-group mb-2">
+                                                                    <div class="input-group-prepend">
+                                                                        <div class="input-group-text">
+                                                                            <i class="fa fa-lock"></i> <span class="ms-1">Turno</span>
+                                                                        </div>
+                                                                    </div>
+                                                                    <span class="form-control"> {{ $det_proceso->detalle_salida_de_molino->salida_molino->turno }}</span>
+                                                                </div>
+                                                            </div>
+
+                                                            <div class="col-md-6">
+                                                                <div class="input-group mb-2">
+                                                                    <div class="input-group-prepend">
+                                                                        <div class="input-group-text">
+                                                                            <i class="fa fa-lock"></i> <span class="ms-1">Sabor</span>
+                                                                        </div>
+                                                                    </div>
+                                                                    <span class="form-control"> {{ $det_proceso->detalle_salida_de_molino->salida_molino->sabor }}</span>
+                                                                </div>
+                                                            </div>
+
+                                                            <div class="col-md-6">
+                                                                <div class="input-group mb-2">
+                                                                    <div class="input-group-prepend">
+                                                                        <div class="input-group-text">
+                                                                            <i class="fa fa-user"></i> <span class="ms-1">Nombre</span>
+                                                                        </div>
+                                                                    </div>
+                                                                    @if($det_proceso->detalle_salida_de_molino->salida_molino->recepcionista)
+                                                                        <span class="form-control"> {{ $det_proceso->detalle_salida_de_molino->salida_molino->recepcionista->username }}</span>
+                                                                    @else
+                                                                        <span class="form-control-text-danger">SIN OPERADOR</span>
+                                                                    @endif
+                                                                </div>
+                                                            </div>
+
+                                                            <div class="col-md-6">
+                                                                <div class="input-group mb-2">
+                                                                    <div class="input-group-prepend">
+                                                                        <div class="input-group-text">
+                                                                            <i class="fa fa-lock"></i> <span class="ms-1">Máquina</span>
+                                                                        </div>
+                                                                    </div>
+                                                                    <span class="form-control"> {{ $det_proceso->detalle_salida_de_molino->salida_molino->maquina->nombre }}</span>
+                                                                </div>
+                                                            </div>
+
+                                                            <div class="col-md-12">
+                                                                <div class="input-group mb-2">
+                                                                    <div class="input-group-prepend">
+                                                                        <div class="input-group-text">
+                                                                            <i class="fa fa-triangle-exclamation"></i> <span class="ms-1">Observaciones</span>
+                                                                        </div>
+                                                                    </div>
+                                                                    <span class="form-control"> {{ $det_proceso->detalle_salida_de_molino->salida_molino->observacion }}</span>
+                                                                </div>
+                                                            </div>
+
+                                                        </div>
+                                                    @else
+                                                        <p class="text-danger text-center">No asignado a molino.</p>
+                                                    @endif
+                                                </div>
+                                                <div class="col-md-6">
+                                                    @if(/* $det_proceso->detalle_salida_de_molino && $det_proceso->detalle_salida_de_molino->salida_molino &&  */ isset($det_proceso->detalle_salida_de_molino->salida_molino->producto_envasado))
+                                                        <div class="row">
+                                                            <div class="col-md-12">
+                                                                <h5 class="text-center">PRODUCTOS ENVASADOS</h5>
+                                                            </div>
+                                                            <div class="col-md-6">
+                                                                <div class="input-group mb-2">
+                                                                    <div class="input-group-prepend">
+                                                                        <div class="input-group-text">
+                                                                            <i class="fa fa-lock"></i> <span class="ms-1">Código</span>
+                                                                        </div>
+                                                                    </div>
+                                                                    <span class="form-control"> {{ $det_proceso->detalle_salida_de_molino->salida_molino->producto_envasado->codigo }}</span>
+                                                                </div>
+                                                            </div>
+
+                                                            <div class="col-md-6">
+                                                                <div class="input-group mb-2">
+                                                                    <div class="input-group-prepend">
+                                                                        <div class="input-group-text">
+                                                                            <i class="fa fa-calendar"></i> <span class="ms-1">Fecha</span>
+                                                                        </div>
+                                                                    </div>
+                                                                    @php 
+                                                                        $fech_ = $det_proceso->detalle_salida_de_molino->salida_molino->producto_envasado->fecha;
+                                                                        try {
+                                                                            $txt = Carbon\Carbon::create($fech_);
+                                                                            $dia_ = $txt->locale('es')->isoFormat('YYYY-MM-DD, dddd'); # dddd, D \d\e MMMM \d\e\l YYYY
+                                                                        } catch (\Exception $e) {
+                                                                            # nada
+                                                                        }
+                                                                    @endphp
+                                                                    <span class="form-control"> {{ $fech_ }}</span>
+                                                                </div>
+                                                            </div>
+
+                                                            <div class="col-md-6"></div>
+
+                                                            <div class="col-md-6">
+                                                                <div class="input-group mb-2">
+                                                                    <div class="input-group-prepend">
+                                                                        <div class="input-group-text">
+                                                                            <i class="fa fa-lock"></i> <span class="ms-1">Sabor</span>
+                                                                        </div>
+                                                                    </div>
+                                                                    <span class="form-control"> {{ $det_proceso->detalle_salida_de_molino->salida_molino->producto_envasado->sabor }}</span>
+                                                                </div>
+                                                            </div>
+
+                                                            <div class="col-md-6">
+                                                                <div class="input-group mb-2">
+                                                                    <div class="input-group-prepend">
+                                                                        <div class="input-group-text">
+                                                                            <i class="fa fa-user"></i> <span class="ms-1">Nombre</span>
+                                                                        </div>
+                                                                    </div>
+                                                                    @if($det_proceso->detalle_salida_de_molino->salida_molino->producto_envasado->encargado)
+                                                                        <span class="form-control"> {{ $det_proceso->detalle_salida_de_molino->salida_molino->producto_envasado->encargado->username }}</span>
+                                                                    @else
+                                                                        <span class="form-control-text-danger">SIN OPERADOR</span>
+                                                                    @endif
+                                                                </div>
+                                                            </div>
+
+                                                            <div class="col-md-6">
+                                                                <div class="input-group mb-2">
+                                                                    <div class="input-group-prepend">
+                                                                        <div class="input-group-text">
+                                                                            <i class="fa fa-lock"></i> <span class="ms-1">Máquina</span>
+                                                                        </div>
+                                                                    </div>
+                                                                    <span class="form-control"> {{ $det_proceso->detalle_salida_de_molino->salida_molino->producto_envasado->maquina->nombre }}</span>
+                                                                </div>
+                                                            </div>
+
+                                                            <div class="col-md-12">
+                                                                <div class="input-group mb-2">
+                                                                    <div class="input-group-prepend">
+                                                                        <div class="input-group-text">
+                                                                            <i class="fa fa-triangle-exclamation"></i> <span class="ms-1">Observaciones</span>
+                                                                        </div>
+                                                                    </div>
+                                                                    <span class="form-control"> {{ $det_proceso->detalle_salida_de_molino->salida_molino->producto_envasado->observacion }}</span>
+                                                                </div>
+                                                            </div>
+
+                                                        </div>
+                                                    @else
+                                                    <p class="text-danger text-center">Aun no esta asignado a productos envasados</p>
+                                                    @endif
+                                                </div>
+                                            </div>
                                         @else
-                                            <p>Aun no está asignado</p>
+                                            <p class="text-danger">Aun no está asignado</p>
                                         @endif
-                                        {{$det_proceso->nro_balde}}
                                     </div>
                                     @php $first = false; @endphp
                                 @endforeach
                             </div>
                         </div>
-                        {{-- <div class="col-3">
-                            <div class="nav flex-column nav-pills" id="v-pills-tab" role="tablist" aria-orientation="vertical">
-                                <button class="nav-link active" id="v-pills-home-tab" data-toggle="pill" data-target="#v-pills-home" type="button" role="tab" aria-controls="v-pills-home" aria-selected="true">Home</button>
-                                <button class="nav-link" id="v-pills-profile-tab" data-toggle="pill" data-target="#v-pills-profile" type="button" role="tab" aria-controls="v-pills-profile" aria-selected="false">Profile</button>
-                                <button class="nav-link" id="v-pills-messages-tab" data-toggle="pill" data-target="#v-pills-messages" type="button" role="tab" aria-controls="v-pills-messages" aria-selected="false">Messages</button>
-                                <button class="nav-link" id="v-pills-settings-tab" data-toggle="pill" data-target="#v-pills-settings" type="button" role="tab" aria-controls="v-pills-settings" aria-selected="false">Settings</button>
-                            </div>
-                        </div>
-                        <div class="col-9">
-                            <div class="tab-content" id="v-pills-tabContent">
-                                <div class="tab-pane fade show active" id="v-pills-home" role="tabpanel" aria-labelledby="v-pills-home-tab">...</div>
-                                <div class="tab-pane fade" id="v-pills-profile" role="tabpanel" aria-labelledby="v-pills-profile-tab">...</div>
-                                <div class="tab-pane fade" id="v-pills-messages" role="tabpanel" aria-labelledby="v-pills-messages-tab">...</div>
-                                <div class="tab-pane fade" id="v-pills-settings" role="tabpanel" aria-labelledby="v-pills-settings-tab">...</div>
-                            </div>
-                        </div> --}}
                     @else
                         <p>No hay datos</p>
                     @endif

@@ -416,9 +416,15 @@ return [
                     'icon' => 'fas fa-diagnoses',
                 ],
                 [
+                    'can'=>'acceso_produccion',
+                    'text' => 'Para Picar',
+                    'url' => 'admin/registros_para_picar',
+                    'icon' => 'fas fa-diagnoses',
+                ],
+                [
                     'can'=>'acceso_inventarios',
                     'text' => 'Inventario',
-                    'url' => '',
+                    'url' => 'admin/inventario_productos_envasados',
                     'icon' => 'fas fa-database',
                 ],
 

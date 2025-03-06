@@ -12,6 +12,9 @@ use App\Models\Maquina;
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+
+use Illuminate\Support\Collection;
+
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
 
@@ -50,6 +53,7 @@ class ProductoEnvasadoIndex extends Component
             'baldes_anteriores' => $this->get_baldes_anteriores(),
             'salidas_molinos' => $this->get_disponibles_salidas_de_molino(),
             'current_salidas_molinos' => $this->get_current_balde_salidas_molinos(),
+            'lista_cambios_de_maquina' => $this->get_posibles_cambios_de_maquina(),
             'maquinas' => $maquinas,
             'usuarios' => $usuarios
         ]);
@@ -168,16 +172,21 @@ class ProductoEnvasadoIndex extends Component
     protected function rules(){
         if($this->operation=='create_producto'){
             return $this->rulesForCreate();
-        }
-        if($this->operation=='edit_baldes'){
+        } else if($this->operation=='edit_baldes'){
             return $this->rulesForEditBalde();
         } else if($this->operation=='edit_cajas'){
             return $this->rulesForEditCaja();
+        } else if($this->operation=='edit_baldes_cambio_maquina'){
+            return $this->rulesForEditBaldeCambioMaquina();
+        } else if($this->operation=='edit_para_picar'){
+            return $this->rulesForEditParaPicar();
         }
         return array_merge(
             $this->rulesForCreate(),
             $this->rulesForEditBalde(),
-            $this->rulesForEditCaja()
+            $this->rulesForEditCaja(),
+            $this->rulesForEditBaldeCambioMaquina(),
+            $this->rulesForEditParaPicar()
         );
     }
 
@@ -267,25 +276,36 @@ class ProductoEnvasadoIndex extends Component
     public $producto_envasado_balde = null;
     public $balde_id;
     public $balde_saldo_anterior;
-    public $balde_cambio_de_maquina;
     public $balde_entrada_de_molino;
     public $balde_sobro_del_dia;
+    public $balde_sobro_del_dia_kg;
     public $balde_observacion;
     public function rulesForEditBalde(){
-        $balde_ant = 0;
-        if(!is_null($this->balde_saldo_anterior) && $this->balde_saldo_anterior !==""){
-            $balde_act = ProductosEnvasados::where('id', $this->balde_saldo_anterior)->first();
-            if($balde_act){
-                $balde_ant = $balde_act->balde_sobro_del_dia;
+        $balde_max = 0;
+        $disponible_kg = 0;
+        $init_balde_kg = 'nullable';
+        $balde_act = ProductosEnvasados::where('id', $this->balde_id)->first();
+        if($balde_act){
+            $disponible_kg = $balde_act->alk_disponible_kg;
+
+            if($balde_act->balde_sobro_del_dia){
+                $balde_max += $balde_act->balde_sobro_del_dia;
             }
+
+            if(!is_null($this->balde_sobro_del_dia) && $this->balde_sobro_del_dia !== "" && $this->balde_sobro_del_dia > 0){
+                $init_balde_kg = 'required';
+                if($balde_act->balde_sobro_del_dia_kg){
+                    $disponible_kg += $balde_act->balde_sobro_del_dia_kg;
+                }
+            }
+
         }
-        $balde_max = round( floatval($balde_ant + $this->balde_entrada_de_molino), 2);
         return [
             'balde_id' => 'required|exists:productos_envasados,id',
             'balde_saldo_anterior' => 'nullable|exists:productos_envasados,id',
-            'balde_cambio_de_maquina' => 'nullable',
             'balde_entrada_de_molino' => 'required|min:.1',
             'balde_sobro_del_dia' => 'nullable|numeric|min:0|max:' . $balde_max,
+            'balde_sobro_del_dia_kg' => $init_balde_kg .'|numeric|min:.01|max:'. $disponible_kg,
             'balde_observacion' => 'nullable|string|max:255'
         ];
     }
@@ -296,7 +316,7 @@ class ProductoEnvasadoIndex extends Component
         if($this->producto_envasado_balde){
             $this->balde_id = $this->producto_envasado_balde->id;
             $this->balde_saldo_anterior = $this->producto_envasado_balde->balde_saldo_anterior;
-            $this->balde_cambio_de_maquina = null; #falta
+            $this->balde_sobro_del_dia_kg = $this->producto_envasado_balde->balde_sobro_del_dia_kg;
             $total_entrada = 0;
             foreach($this->producto_envasado_balde->salidas_de_molino as $mols){
                 $total_entrada += count($mols->detalle_salida_molinos);
@@ -313,9 +333,9 @@ class ProductoEnvasadoIndex extends Component
         $this->reset([
             'balde_id',
             'balde_saldo_anterior',
-            'balde_cambio_de_maquina',
             'balde_entrada_de_molino',
             'balde_sobro_del_dia',
+            'balde_sobro_del_dia_kg',
             'balde_observacion'
         ]);
         $this->producto_envasado_balde = null;
@@ -330,7 +350,13 @@ class ProductoEnvasadoIndex extends Component
                 DB::beginTransaction();
                 $producto_envasado = ProductosEnvasados::where('id', $this->balde_id)->first();
                 $producto_envasado->balde_saldo_anterior = (is_null($this->balde_saldo_anterior) || $this->balde_saldo_anterior=="")? null: $this->balde_saldo_anterior;
-                $producto_envasado->balde_sobro_del_dia = (!is_null($this->balde_sobro_del_dia) && $this->balde_sobro_del_dia!=="" )? round(floatval($this->balde_sobro_del_dia), 2): null;
+                if(!is_null($this->balde_sobro_del_dia) && $this->balde_sobro_del_dia!==""){
+                    $producto_envasado->balde_sobro_del_dia = round(floatval($this->balde_sobro_del_dia), 2);
+                    $producto_envasado->balde_sobro_del_dia_kg = round( floatval($this->balde_sobro_del_dia_kg),  2);
+                } else {
+                    $producto_envasado->balde_sobro_del_dia = null;
+                    $producto_envasado->balde_sobro_del_dia_kg = null;
+                }
                 $producto_envasado->observacion = $this->balde_observacion;
                 $producto_envasado->save();
                 DB::commit();
@@ -499,11 +525,35 @@ class ProductoEnvasadoIndex extends Component
     public $caja_bolsas;
     public $caja_observacion;
     public function rulesForEditCaja(){
+        $CAJA_KG = 2.4;
+        $PESO_KG_BOLSITA = .012; # 12 gramos
+        $max_kg = 0;
+        $max_cajas = 0;
+        $max_bolsas = 0;
+        $cambio = ProductosEnvasados::where('id', $this->caja_id)
+            ->where('estado', 1)->first();
+        #calcular maximo de
+        if($cambio){
+            $max_kg = $cambio->alk_disponible_kg;
+            if(!is_null($cambio->caja_cajas) && $cambio->caja_cajas !== ""){
+                $max_kg += $cambio->cantidad_kg_de_caja;
+            }
+            if(!is_null($cambio->caja_bolsas) && $cambio->caja_bolsas !== ""){
+                $max_kg += $cambio->cantidad_kg_de_bolsitas;
+            }
+
+            if(!is_null($this->caja_cajas) && $this->caja_cajas !== ""){
+                $max_cajas = ($max_kg / $CAJA_KG);
+                $max_bolsas = ($max_kg - ($this->caja_cajas * $CAJA_KG)) / $PESO_KG_BOLSITA;
+            } else if(!is_null($this->caja_bolsas) && $this->caja_bolsas !== ""){
+                $max_bolsas = ($max_kg / $PESO_KG_BOLSITA) ;
+            }
+        }
         # calcular las cajas y bolsas
         return [
             'caja_id' => 'required|exists:productos_envasados,id',
-            'caja_cajas' => 'nullable|integer|min:0',
-            'caja_bolsas' => 'nullable|integer|min:0',
+            'caja_cajas' => 'nullable|integer|min:0|max:'. $max_cajas,
+            'caja_bolsas' => 'nullable|integer|min:0|max:'. $max_bolsas,
             'caja_observacion' => 'nullable|string|max:255'
         ];
     }
@@ -549,6 +599,261 @@ class ProductoEnvasadoIndex extends Component
                 DB::rollBack();
                 $this->emit('error', 'Error al actualizar datos de caja. '. $e->getMessage());
             }
+        }
+    }
+
+    /* *********************** ********* ************************** */
+
+    public $producto_envasado_balde_cambio = null;
+    public $prod_env_cm_id;
+    public $prod_env_cm_cambio_maquina;
+    public $prod_env_cm_baldes;
+    public $prod_env_cm_kg;
+    public $prod_env_cm_observacion;
+    public $prod_env_detalles_cambio_maquina;
+    public function rulesForEditBaldeCambioMaquina(){
+        # calcular las cajas y bolsas
+        $max_kg = '';
+        $max_baldes = '';
+        $rule_init = 'nullable';
+        if(!is_null($this->prod_env_cm_cambio_maquina) && $this->prod_env_cm_cambio_maquina !== ""){
+            $rule_init = 'required';
+            $cambio = ProductosEnvasados::where('id', $this->prod_env_cm_cambio_maquina)
+                ->where('estado', 1)->first();
+            #calcular maximo de
+            if($cambio){
+                $max_kg = '|max:'. $cambio->alk_disponible_kg;
+                $max_baldes = '|max:'. $cambio->alk_disponible_baldes;
+            }
+        }
+        return [
+            'prod_env_cm_id' => 'required|exists:productos_envasados,id',
+            'prod_env_cm_cambio_maquina' => 'nullable|exists:productos_envasados,id',
+            'prod_env_cm_baldes' => $rule_init. '|numeric|min:.01'. $max_baldes,
+            'prod_env_cm_kg' => $rule_init .'|numeric|min:.01'. $max_kg,
+            'prod_env_cm_observacion' => $rule_init. '|string|min:5|max:255'
+        ];
+    }
+
+    public function open_modal_editar_balde_cambio_de_maquina($id_prod){
+        $this->close_modal_editar_caja();
+        $this->producto_envasado_balde_cambio = ProductosEnvasados::where('id', $id_prod)->first();
+        if($this->producto_envasado_balde_cambio){
+            $this->prod_env_cm_id = $this->producto_envasado_balde_cambio->id;
+            $this->prod_env_cm_cambio_maquina = $this->producto_envasado_balde_cambio->balde_cambio_de_maquina_id;
+            $this->prod_env_cm_baldes = $this->producto_envasado_balde_cambio->balde_cambio_de_maquina_baldes;
+            $this->prod_env_cm_kg = $this->producto_envasado_balde_cambio->balde_cambio_de_maquina_kg;
+            $this->prod_env_cm_observacion = $this->producto_envasado_balde_cambio->observacion;
+        }
+        $this->operation = 'edit_baldes_cambio_maquina';
+    }
+
+    public function close_modal_editar_balde_cambio_de_maquina(){
+        $this->operation = '';
+        $this->reset([
+            'prod_env_cm_id',
+            'prod_env_cm_cambio_maquina',
+            'prod_env_cm_baldes',
+            'prod_env_cm_kg',
+            'prod_env_cm_observacion'
+        ]);
+        $this->producto_envasado_balde_cambio = null;
+        $this->prod_env_detalles_cambio_maquina = null;
+        $this->resetValidation();
+    }
+
+    public function save_modal_editar_balde_cambio_de_maquina(){
+        if($this->operation == 'edit_baldes_cambio_maquina'){
+            $this->validate();
+            $this->emit('mensaje', 'LIStp');
+            try{
+                DB::beginTransaction();
+                $producto_envasado = ProductosEnvasados::where('id', $this->prod_env_cm_id)->first();
+                if(is_null($this->prod_env_cm_cambio_maquina) || $this->prod_env_cm_cambio_maquina == ""){
+                    $producto_envasado->balde_cambio_de_maquina_id = null;
+                    $producto_envasado->balde_cambio_de_maquina_baldes = null;
+                    $producto_envasado->balde_cambio_de_maquina_kg = null;
+                } else {
+                    $producto_envasado->balde_cambio_de_maquina_id = $this->prod_env_cm_cambio_maquina;
+                    $producto_envasado->balde_cambio_de_maquina_baldes = round($this->prod_env_cm_baldes, 2);
+                    $producto_envasado->balde_cambio_de_maquina_kg = round($this->prod_env_cm_kg, 2);
+                }
+                $producto_envasado->observacion = $this->prod_env_cm_observacion;
+                $producto_envasado->save();
+                DB::commit();
+                $this->emit('success', 'Se ha actualizado el cambio de máquina.');
+                $this->close_modal_editar_balde();
+            } catch(\Exception $e){
+                DB::rollBack();
+                $this->emit('error', 'Error al actualizar datos de cambio de máquina. '. $e->getMessage());
+            }
+        }
+    }
+
+    /* aniadir cambio de maquina
+     * se seleccionan, los productos envasados del mismo dia, sin incluirse estas
+     * ademas solo se listan los que estan en estado 1
+     * 
+     */
+
+     private function get_posibles_cambios_de_maquina(){
+        if($this->operation == 'edit_baldes_cambio_maquina' && $this->producto_envasado_balde_cambio){
+            $lista = ProductosEnvasados::where('estado', 1)
+                ->where('fecha', $this->producto_envasado_balde_cambio->fecha)
+                ->where('sabor', $this->producto_envasado_balde_cambio->sabor)
+                ->where('maquina_id', '<>', $this->producto_envasado_balde_cambio->maquina_id)
+                /* ->where(function($query){
+                    $query->where('') # si al menos tiene una entrada de balde(salida de molino) y que al menos tenga un sobro del dia
+                }) */
+                ->where('id', '<>', $this->balde_id)->get();
+            $final = [];
+            foreach($lista as $prod){
+                /* $baldes = 0;
+                foreach($prod->salidas_de_molino as $mol){
+                    $baldes += count($mol->detalle_salida_molinos);
+                }
+                $prod->total_baldes = $baldes;
+
+                if($prod->total_baldes > 0 || !is_null($prod->balde_saldo_anterior)){
+                    $final[] = $prod;
+                } */
+               if($prod->alk_disponible_baldes || !is_null($prod->balde_saldo_anterior)){
+                    $final[] = $prod;
+               }
+            }
+            return $final;
+        } else {
+            return [];
+        }
+    }
+
+    protected function updatedProdEnvCmCambioMaquina(){
+        $this->reset([
+            'prod_env_cm_baldes',
+            'prod_env_cm_kg',
+        ]);
+        $this->resetValidation([
+            'prod_env_cm_baldes',
+            'prod_env_cm_kg',
+        ]);
+        if($this->prod_env_cm_cambio_maquina && $this->prod_env_cm_cambio_maquina !== ""){
+            $this->prod_env_detalles_cambio_maquina = ProductosEnvasados::where('id', $this->prod_env_cm_cambio_maquina)->first();
+        } else {
+            $this->prod_env_detalles_cambio_maquina = null;
+        }
+    }
+
+    public function agregar_comentario_cambio(){
+        if($this->prod_env_cm_cambio_maquina !== "" && $this->prod_env_detalles_cambio_maquina && $this->prod_env_cm_baldes !=="" && $this->prod_env_cm_baldes > 0){
+            if(is_null($this->prod_env_cm_observacion)){
+                $this->prod_env_cm_observacion = "";    
+            }
+            $this->prod_env_cm_observacion .= '"'. round($this->prod_env_cm_baldes, 2). ' balde de '. mb_strtolower($this->prod_env_detalles_cambio_maquina->maquina->nombre). '"';
+        }
+    }
+
+    /* *********************** ********* ************************** */
+
+    public $producto_envasado_picar = null;
+    public $prod_env_picar_id;
+    public $prod_env_picar_para_picar;
+    public $prod_env_picar_nro_de_bolsitas;
+    public $prod_env_picar_kg_de_bolsitas;
+    public $prod_env_picar_observacion;
+    public function rulesForEditParaPicar(){
+        # calcular las cajas y bolsas
+        $PESO_KG_BOLSITA = .012; # 12 gramos
+        $max_bolsitas = '';
+        $max_kg = '';
+        $rule_init = 'nullable';
+        if($this->prod_env_picar_para_picar){
+            $rule_init = 'required';
+            $cambio = ProductosEnvasados::where('id', $this->prod_env_picar_id)
+                ->where('estado', 1)->first();
+            #calcular maximo de
+            if($cambio){
+                $disponible = $cambio->alk_disponible_kg;
+                if($cambio->para_picar == 1){
+                    $disponible -= $cambio->para_picar_kg_de_bolsitas;
+                }
+                $max_kg = '|max:'. $disponible;
+                # descontar si para_picar es 1
+                $max_bolsitas = '|max:'. round(($disponible/$PESO_KG_BOLSITA), 0);
+            }
+        }
+        return [
+            'prod_env_picar_id' => 'required|exists:productos_envasados,id',
+            'prod_env_picar_para_picar' => 'nullable|boolean',
+            'prod_env_picar_nro_de_bolsitas' => $rule_init. '|integer|min:1'. $max_bolsitas,
+            'prod_env_picar_kg_de_bolsitas' => $rule_init .'|numeric|min:.01'. $max_kg,
+            'prod_env_picar_observacion' => 'nullable|string|min:5|max:255'
+        ];
+    }
+
+    public function open_modal_editar_para_picar($id_prod){
+        $this->close_modal_editar_para_picar();
+        $this->producto_envasado_picar = ProductosEnvasados::where('id', $id_prod)->first();
+        if($this->producto_envasado_picar){
+            $this->prod_env_picar_id = $this->producto_envasado_picar->id;
+            $this->prod_env_picar_para_picar = $this->producto_envasado_picar->para_picar==1? true: false;
+            $this->prod_env_picar_nro_de_bolsitas = $this->producto_envasado_picar->para_picar_nro_de_bolsitas;
+            $this->prod_env_picar_kg_de_bolsitas = $this->producto_envasado_picar->para_picar_kg_de_bolsitas;
+            $this->prod_env_picar_observacion = $this->producto_envasado_picar->observacion;
+        }
+        $this->operation = 'edit_para_picar';
+    }
+
+    public function close_modal_editar_para_picar(){
+        $this->operation = '';
+        $this->reset([
+            'prod_env_picar_id',
+            'prod_env_picar_para_picar',
+            'prod_env_picar_nro_de_bolsitas',
+            'prod_env_picar_kg_de_bolsitas',
+            'prod_env_picar_observacion'
+        ]);
+        $this->producto_envasado_picar = null;
+        $this->resetValidation();
+    }
+
+    public function save_modal_editar_para_picar(){
+        if($this->operation == 'edit_para_picar'){
+            $this->validate();
+            try{
+                DB::beginTransaction();
+                $producto_envasado = ProductosEnvasados::where('id', $this->prod_env_picar_id)->first();
+                $producto_envasado->para_picar = ($this->prod_env_picar_id)? 1: 0;
+                if($this->prod_env_picar_id){
+                    $producto_envasado->para_picar_nro_de_bolsitas = $this->prod_env_picar_nro_de_bolsitas;
+                    $producto_envasado->para_picar_kg_de_bolsitas = $this->prod_env_picar_kg_de_bolsitas;
+                }
+                $producto_envasado->observacion = $this->prod_env_picar_observacion;
+                $producto_envasado->save();
+                DB::commit();
+                $this->emit('success', 'Se ha actualizado los datos para picar.');
+                $this->close_modal_editar_balde();
+            } catch(\Exception $e){
+                DB::rollBack();
+                $this->emit('error', 'Error al actualizar datos de para picar. '. $e->getMessage());
+            }
+        }
+    }
+
+    public function btn_caculate_nro_de_bolsitas(){
+        $PESO_KG_BOLSITA = .012; # 12 gramos
+        if($this->prod_env_picar_kg_de_bolsitas && $this->prod_env_picar_kg_de_bolsitas!==""){
+            $this->prod_env_picar_nro_de_bolsitas = round($this->prod_env_picar_kg_de_bolsitas / $PESO_KG_BOLSITA, 0);
+        } else {
+            $this->prod_env_picar_nro_de_bolsitas = "";
+        }
+    }
+
+    public function btn_caculate_kg_de_bolsitas(){
+        $PESO_KG_BOLSITA = .012; # 12 gramos
+        if($this->prod_env_picar_nro_de_bolsitas && $this->prod_env_picar_nro_de_bolsitas!==""){
+            $this->prod_env_picar_kg_de_bolsitas = round($this->prod_env_picar_nro_de_bolsitas * $PESO_KG_BOLSITA, 2);
+        } else {
+            $this->prod_env_picar_kg_de_bolsitas = "";
         }
     }
 

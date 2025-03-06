@@ -230,7 +230,7 @@
                                                     <td>{{$det->fecha}}</td>
                                                     <td>{{$det->observacion}}</td>
                                                     <td>
-                                                        @if($det->estado == 1)
+                                                        @if(is_null($det->detalle_salida_de_molino))
                                                             <button type="button" class="btn btn-danger" title="eliminar" wire:click="delete_detalle_proceso_preparacion({{ $det->id }})">
                                                                 <i class="fas fa-trash"></i>
                                                             </button>

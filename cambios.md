@@ -85,3 +85,19 @@
 | detalle_proceso_preparacion_id | INT UNSIGNED | | |si | 
 | id_user | INT UNSIGNED |  | | si | usuario que la ultima vez hizo cambios
 | estado | TINYINT | | | | puede ser 1 o 0 |
+
+8. A la tabla llamada **productos_envasados** se incluyo nuevas columnas
+
+| nombre | tipo | nulo | pk | fk | comentario |
+|---|---|---|---|---|---|
+| balde_cambio_de_maquina_id | INT UNSIGNED | si |  | si | hace referecia a la tabla productos_envasados, en la principal sirve para añadir mas baldes y kg, en la que se hace referencia, es para descontar baldes y kg
+| balde_cambio_de_maquina_baldes | FLOAT(4) | si | | | solo sirve, cuando la columna balde_cambio_de_maquina_id este asignado 
+| balde_cambio_de_maquina_kg | FLOAT(4) | si | | | solo sirve, cuando la columna balde_cambio_de_maquina_id este asignado 
+
+8. A la tabla llamada **productos_envasados** se incluyo nuevas columnas para pica
+
+| nombre | tipo | nulo | pk | fk | comentario |
+|---|---|---|---|---|---|
+| para_picar | TINYINT | | | | si este es 1: entoces es para picar, si es 0: no
+| para_picar_nro_de_bolsitas | INT | si | | | si 'para_picar' es 1: entonces este campo no puede ser nulo
+| para_picar_kg_de_bolsitas | FLOAT(4) | si | | | si 'para_picar' es 1: entonces este campo no puede ser nulo

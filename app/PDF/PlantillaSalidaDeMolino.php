@@ -4,6 +4,8 @@ namespace App\PDF;
 
 use Codedge\Fpdf\Fpdf\Fpdf;
 
+use Illuminate\Support\Str;
+
 class PlantillaSalidaDeMolino extends Fpdf {
 
     protected $titulo = 'SALIDAS DE MOLINO';
@@ -27,6 +29,13 @@ class PlantillaSalidaDeMolino extends Fpdf {
     }
 
     public function Header(){
+        # insertar imagen
+        $image = Str::finish(public_path(), DIRECTORY_SEPARATOR) . 'img' . DIRECTORY_SEPARATOR . 'logo.png'; #public_path(). '/img/logo.png';
+        if(file_exists($image)){
+            $this->Image($image, 10, 5, 0, 18);
+            /* $this->Text(5, 5, 'Es'. $image); */
+        }
+
         $this->SetXY(30, 10);
         $this->SetFont('Arial', 'B', 20);
         $this->Cell(0, 9, utf8_decode($this->titulo), $this->borderDev, 1, 'C');

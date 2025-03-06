@@ -173,20 +173,15 @@
 
                         <div class="col-md-6">
                             <div class="input-group mb-2">
-                                <label class="input-group-prepend" for="balde_cambio_de_maquina">
-                                    <div class="input-group-text">
-                                        <i class="fas fa-user pe-1"></i>
-                                        <b>Cambio de máquina</b>
-                                    </div>
-                                </label>
-                                <select class="form-control @error('balde_cambio_de_maquina') border-danger @enderror" id="balde_cambio_de_maquina" wire:model="balde_cambio_de_maquina">
-                                    <option value="">Seleccione maquina</option>
-                                    {{-- @foreach ($usuarios as $us)
-                                        <option value="{{$us->id}}">{{ $us->username }}</option>
-                                    @endforeach --}}
-                                </select>
+                                <div class="input-group-prepend">
+                                    <label class="input-group-text" for="balde_sobro_del_dia">
+                                        <i class="fas fa-weight-scale pe-1"></i>
+                                        <b>Sobro del día (baldes)</b>
+                                    </label>
+                                </div>
+                                <input class="form-control @error('balde_sobro_del_dia') border-danger @enderror" type="number" wire:model="balde_sobro_del_dia" id="balde_sobro_del_dia">
                             </div>
-                            @error('balde_cambio_de_maquina')
+                            @error('balde_sobro_del_dia')
                                 <span class="text-danger">{{ $message }}</span>
                             @enderror
                         </div>
@@ -209,14 +204,14 @@
                         <div class="col-md-6">
                             <div class="input-group mb-2">
                                 <div class="input-group-prepend">
-                                    <label class="input-group-text" for="balde_sobro_del_dia">
+                                    <label class="input-group-text" for="balde_sobro_del_dia_kg">
                                         <i class="fas fa-weight-scale pe-1"></i>
-                                        <b>Sobro del día (cantidad)</b>
+                                        <b>Sobro del día (cantidad kg)</b>
                                     </label>
                                 </div>
-                                <input class="form-control @error('balde_sobro_del_dia') border-danger @enderror" type="number" wire:model="balde_sobro_del_dia" id="balde_sobro_del_dia">
+                                <input class="form-control @error('balde_sobro_del_dia_kg') border-danger @enderror" type="number" wire:model="balde_sobro_del_dia_kg" id="balde_sobro_del_dia_kg" @if(is_null($balde_sobro_del_dia) || $balde_sobro_del_dia=="" || $balde_sobro_del_dia <= 0) disabled @endif>
                             </div>
-                            @error('balde_sobro_del_dia')
+                            @error('balde_sobro_del_dia_kg')
                                 <span class="text-danger">{{ $message }}</span>
                             @enderror
                         </div>
@@ -377,6 +372,204 @@
                     <button type="button" class="btn btn-primary" wire:click="save_modal_editar_caja">GUARDAR</button>
                 </div>
             </div>
+        @elseif($operation=='edit_baldes_cambio_maquina')
+            <div class="card-body p-3">
+                <div class="modal-header">
+                    <h5 class="modal-title mt-0 text-center">
+                        BALDES - CAMBIO DE MÁQUINA
+                    </h5>
+                        <button type="button" class="btn btn-close" data-bs-dismiss="modal" aria-label="close" wire:click="close_modal_editar_balde_cambio_de_maquina"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+
+                        @include('livewire.extras.details-producto_envasado', ['detalle_producto_envasado' => $producto_envasado_balde_cambio])
+
+                        <div class="col-md-9 row">
+                            <div class="col-md-9">
+                                <div class="input-group mb-2">
+                                    <div class="input-group-prepend">
+                                        <label class="input-group-text" for="prod_env_cm_cambio_maquina">
+                                            <i class="fas fa-clock pe-1"></i>
+                                            <b>Cambio de Máquina</b>
+                                        </label>
+                                    </div>
+                                    <select class="form-control @error('prod_env_cm_cambio_maquina') border-danger @enderror" id="prod_env_cm_cambio_maquina" wire:model="prod_env_cm_cambio_maquina" title="codigo .:: fecha .:: turno .:: cantidad de baldes .:: kg. totales .:: observacion">
+                                        <option value="">seleccione máquina (descuenta inventario)</option>
+                                        @foreach ($lista_cambios_de_maquina as $camb_maq)
+                                            <option value="{{$camb_maq->id}}">{{ $camb_maq->codigo }} .:: {{ $camb_maq->maquina->nombre }} ..: {{ $camb_maq->alk_disponible_baldes}} baldes .:: {{ $camb_maq->alk_disponible_kg}} kg .:: {{ $camb_maq->observacion }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                @error('prod_env_cm_cambio_maquina')
+                                    <span class="text-danger">{{ $message }}</span>
+                                @enderror
+                            </div>
+                            <div class="col-md-3">
+                                <div class="input-group mb-2">
+                                    <div class="input-group-prepend">
+                                        <label class="input-group-text" for="prod_env_cm_cambio_maquina">
+                                            <i class="fas fa-weight-scale pe-1"></i>
+                                            <b>Baldes</b>
+                                        </label>
+                                    </div>
+                                    <input class="form-control @error('prod_env_cm_baldes') border-danger @enderror" type="number" wire:model="prod_env_cm_baldes" id="prod_env_cm_baldes" @if($prod_env_cm_cambio_maquina == "") disabled @endif>
+                                </div>
+                                @error('prod_env_cm_baldes')
+                                    <span class="text-danger">{{ $message }}</span>
+                                @enderror
+                            </div>
+
+                            <div class="col-md-9">
+                                <div class="input-group mb-2">
+                                    <div class="input-group-prepend">
+                                        <label class="input-group-text" for="prod_env_cm_observacion">
+                                            <i class="fas fa-triangle-exclamation pe-1"></i>
+                                            <b>Observación</b>
+                                        </label>
+                                    </div>
+                                    <textarea class="form-control @error('prod_env_cm_observacion') border-danger @enderror" wire:model="prod_env_cm_observacion" id="prod_env_cm_observacion"></textarea>
+                                    <button class="btn btn-primary" wire:click="agregar_comentario_cambio" title="agregar comentario" @if($prod_env_cm_cambio_maquina == "" || $prod_env_cm_baldes=="" || $prod_env_cm_kg=="" || $errors->has('prod_env_cm_baldes') || $errors->has('prod_env_cm_kg')) disabled @endif>
+                                        <i class="fas fa-plus"></i>
+                                    </button>
+                                </div>
+                                @error('prod_env_cm_observacion')
+                                    <span class="text-danger">{{ $message }}</span>
+                                @enderror
+                            </div>
+
+                            <div class="col-md-3">
+                                <div class="input-group mb-2">
+                                    <div class="input-group-prepend">
+                                        <label class="input-group-text" for="prod_env_cm_kg">
+                                            <i class="fas fa-weight-scale pe-1"></i>
+                                            <b>Kg.</b>
+                                        </label>
+                                    </div>
+                                    <input class="form-control @error('prod_env_cm_kg') border-danger @enderror" type="number" wire:model="prod_env_cm_kg" id="prod_env_cm_kg" @if($prod_env_cm_cambio_maquina == "") disabled @endif>
+                                </div>
+                                @error('prod_env_cm_kg')
+                                    <span class="text-danger">{{ $message }}</span>
+                                @enderror
+                            </div>
+
+                            <div class="col-md-12">
+                                @error('prod_env_cm_id')
+                                    <span class="text-danger">{{ $message }}</span>
+                                @enderror
+                            </div>
+
+                        </div>
+                        <div class="col md-3">
+                            @if($prod_env_cm_cambio_maquina !== "" && $this->prod_env_detalles_cambio_maquina)
+                                <b>Código: </b> {{ $this->prod_env_detalles_cambio_maquina->codigo }}<br>
+                                <b>Máquina: </b> {{ $this->prod_env_detalles_cambio_maquina->maquina->nombre }} <br>
+                                <b>Nombre: </b> @if($this->prod_env_detalles_cambio_maquina->encargado) {{ $this->prod_env_detalles_cambio_maquina->encargado->username }} @else <span class="text-danger">SIN OPERADOR</span> @endif <br>
+                                <b>Disponible baldes: </b> {{ $this->prod_env_detalles_cambio_maquina->alk_disponible_baldes }} <br>
+                                <b>Disponible kg.: </b> {{ $this->prod_env_detalles_cambio_maquina->alk_disponible_kg }} <br>
+                                <b>Observación</b> {{ $this->prod_env_detalles_cambio_maquina->observacion }}
+                            @endif
+                        </div>
+                        
+                        
+                    </div>
+                </div>
+                <div class="modal-footer d-flex justify-content-center">
+                    <button type="button" class="btn btn-danger" wire:click="close_modal_editar_balde_cambio_de_maquina">CANCELAR</button>
+                    <button type="button" class="btn btn-primary" wire:click="save_modal_editar_balde_cambio_de_maquina">GUARDAR</button>
+                </div>
+            </div>
+        @elseif($operation=='edit_para_picar')
+            <div class="card-body p-3">
+                <div class="modal-header">
+                    <h5 class="modal-title mt-0 text-center">
+                        FORMULARIO PARA PICAR
+                    </h5>
+                        <button type="button" class="btn btn-close" data-bs-dismiss="modal" aria-label="close" wire:click="close_modal_editar_para_picar"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+
+                        @include('livewire.extras.details-producto_envasado', ['detalle_producto_envasado' => $producto_envasado_picar])
+
+                        <div class="col-md-2">
+                            <div class="input-group mb-2">
+                                <div class="input-group-prepend">
+                                    <label class="input-group-text" for="prod_env_picar_para_picar">
+                                        <i class="fas fa-clock pe-1"></i>
+                                        <b>Para picar</b>
+                                    </label>
+                                </div>
+                                <input class="form-check @error('prod_env_picar_para_picar') border-danger @enderror" type="checkbox" wire:model="prod_env_picar_para_picar" id="prod_env_picar_para_picar" >
+                            </div>
+                            @error('prod_env_picar_para_picar')
+                                <span class="text-danger">{{ $message }}</span>
+                            @enderror
+                        </div>
+                        <div class="col-md-4">
+                            <div class="input-group mb-2">
+                                <div class="input-group-prepend">
+                                    <label class="input-group-text" for="prod_env_picar_nro_de_bolsitas">
+                                        <i class="fas fa-weight-scale pe-1"></i>
+                                        <b>Nro. de Bolsitas</b>
+                                    </label>
+                                </div>
+                                <button class="btn btn-secondary" wire:click="btn_caculate_kg_de_bolsitas" title="Cacular kgs. de bolsitas" @if(!$prod_env_picar_para_picar || $errors->has('prod_env_picar_nro_de_bolsitas')) disabled @endif>
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                                <input class="form-control @error('prod_env_picar_nro_de_bolsitas') border-danger @enderror" type="number" wire:model="prod_env_picar_nro_de_bolsitas" id="prod_env_picar_nro_de_bolsitas" @if(!$prod_env_picar_para_picar) disabled @endif>
+                            </div>
+                            @error('prod_env_picar_nro_de_bolsitas')
+                                <span class="text-danger">{{ $message }}</span>
+                            @enderror
+                        </div>
+
+                        <div class="col-md-4">
+                            <div class="input-group mb-2">
+                                <div class="input-group-prepend">
+                                    <label class="input-group-text" for="prod_env_picar_kg_de_bolsitas">
+                                        <i class="fas fa-weight-scale pe-1"></i>
+                                        <b>Total Kg.</b>
+                                    </label>
+                                </div>
+                                <button class="btn btn-secondary" wire:click="btn_caculate_nro_de_bolsitas" title="Cacular nro de bolsitas" @if(!$prod_env_picar_para_picar || $errors->has('prod_env_picar_kg_de_bolsitas')) disabled @endif>
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                                <input class="form-control @error('prod_env_picar_kg_de_bolsitas') border-danger @enderror" type="number" wire:model="prod_env_picar_kg_de_bolsitas" id="prod_env_picar_kg_de_bolsitas" @if(!$prod_env_picar_para_picar) disabled @endif>
+                            </div>
+                            @error('prod_env_picar_kg_de_bolsitas')
+                                <span class="text-danger">{{ $message }}</span>
+                            @enderror
+                        </div>
+
+                        <div class="col-md-10">
+                            <div class="input-group mb-2">
+                                <div class="input-group-prepend">
+                                    <label class="input-group-text" for="prod_env_picar_observacion">
+                                        <i class="fas fa-triangle-exclamation pe-1"></i>
+                                        <b>Observación</b>
+                                    </label>
+                                </div>
+                                <textarea class="form-control @error('prod_env_picar_observacion') border-danger @enderror" wire:model="prod_env_picar_observacion" id="prod_env_picar_observacion"></textarea>
+                            </div>
+                            @error('prod_env_picar_observacion')
+                                <span class="text-danger">{{ $message }}</span>
+                            @enderror
+                        </div>
+
+                        <div class="col-md-12">
+                            @error('prod_env_picar_id')
+                                <span class="text-danger">{{ $message }}</span>
+                            @enderror
+                        </div>
+
+                    </div>
+                </div>
+                <div class="modal-footer d-flex justify-content-center">
+                    <button type="button" class="btn btn-danger" wire:click="close_modal_editar_para_picar">CANCELAR</button>
+                    <button type="button" class="btn btn-primary" wire:click="save_modal_editar_para_picar">GUARDAR</button>
+                </div>
+            </div>
         @else
             {{-- MAIN --}}
             <div class="row">
@@ -463,6 +656,7 @@
                                 <th>Observaciones</th>
                                 <th>Estado</th>
                                 <th class="text-right">Acciones</th>
+                                <th colspan="4">Totales</th>
                             </tr>
                             <tr>
                                 <th class="border-left">Saldo Anterior</th>
@@ -480,6 +674,14 @@
                                 <th class="border-left">Ingreso</th>
                                 <th>Mal estado</th>
                                 <th class="border-right">Sobrantes</th>
+
+                                <th colspan="3"></th>
+
+                                <th class="text-center">Total Baldes</th>
+                                <th class="text-center">Total Kg</th>
+                                <th class="text-center">Dis Baldes</th>
+                                <th class="text-center">Dis Kg</th>
+                                <th class="text-center">Picar</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -494,8 +696,24 @@
                                     <td>{{is_null($prod_env->encargado)? 'SIN OPERADOR': $prod_env->encargado->username}}</td>
                                     <td>{{$prod_env->sabor}}</td>
     
-                                    <td class="border-left">{{is_null($prod_env->balde_saldo_anterior)? '-': $prod_env->producto_saldo_anterior->balde_sobro_del_dia}}</td>
-                                    <td></td>
+                                    <td class="border-left">
+                                        @if($prod_env->balde_saldo_anterior)
+                                            {{$prod_env->producto_saldo_anterior->balde_sobro_del_dia}} <span class="text-primary">({{$prod_env->producto_saldo_anterior->balde_sobro_del_dia_kg}} kg)</span>
+                                        @else
+                                            -
+                                        @endif
+                                    </td>
+                                    <td>
+                                        @if($prod_env->producto_cambio_de_maquina)
+                                            {{ $prod_env->balde_cambio_de_maquina_baldes }} <span class="text-primary" title="Entrada de cambio de máquina">({{$prod_env->balde_cambio_de_maquina_kg}} kg)</span>
+                                        @else
+                                            -
+                                        @endif
+                                        {{-- perdidas --}}
+                                        @if($prod_env->cambio_maquina_descuento)
+                                            <span class="text-danger" title="Descuento de entrada de máquina">({{$prod_env->cambio_maquina_descuento->balde_cambio_de_maquina_kg}} kg.)</span>
+                                        @endif
+                                    </td>
                                     <td>
                                         @php 
                                             $total_baldes = 0;
@@ -503,17 +721,30 @@
                                                 $total_baldes += count($sal_mol->detalle_salida_molinos);
                                             }
                                         @endphp
-                                        @if(count($prod_env->salidas_de_molino) > 0)
-                                            {{ $total_baldes }}
+                                        @if($prod_env->entrada_cantidad_de_baldes > 0)
+                                            {{ $prod_env->entrada_cantidad_de_baldes }}
+                                            <span class="text-primary">({{$prod_env->entrada_cantidad_kg}} kg.)</span>
                                         @else 
                                             <span class="text-danger" style="font-size: 9px">Sin asignar</span>
                                         @endif
                                         {{--$prod_env->balde_entrada_de_molino--}}
                                     </td>
-                                    <td class="border-right">{{is_null($prod_env->balde_sobro_del_dia)? '-': $prod_env->balde_sobro_del_dia}}</td>
+                                    <td class="border-right">
+                                        @if($prod_env->balde_sobro_del_dia)
+                                            {{$prod_env->balde_sobro_del_dia}} <span class="text-primary">({{$prod_env->balde_sobro_del_dia_kg}} kg)</span>
+                                        @else
+                                            -
+                                        @endif
+                                    </td>
     
-                                    <td class="border-left">{{$prod_env->caja_cajas}}</td>
-                                    <td class="border-right">{{$prod_env->caja_bolsas}}</td>
+                                    <td class="border-left">
+                                        {{$prod_env->caja_cajas}}
+                                        @if($prod_env->caja_cajas) <span class="text-primary">({{$prod_env->cantidad_kg_de_caja}} kg)</span> @endif
+                                    </td>
+                                    <td class="border-right">
+                                        {{$prod_env->caja_bolsas}}
+                                        @if($prod_env->caja_bolsas) <span class="text-primary">({{$prod_env->cantidad_kg_de_bolsitas}} kg)</span> @endif
+                                    </td>
     
                                     <td class="border-left">{{-- {{$prod_env->sabor}} --}}</td>
                                     <td></td>
@@ -523,7 +754,7 @@
                                     <td></td>
                                     <td class="border-right">{{-- {{$prod_env->sabor}} --}}</td>
     
-                                    <td>{{$prod_env->observacion}}</td>
+                                    <td>{{$prod_env->observacion}} {{--json_encode($prod_env->cambio_maquina_descuento)--}}</td>
                                     <td>
                                         @if($prod_env->estado == 1)
                                             <span class="badge bg-warning">Pendiente</span>
@@ -555,6 +786,24 @@
                                                                 title="Editar {{ $prod_env->codigo }}">
                                                                 <i class="fas fa-edit"></i> Editar Cajas
                                                             </a>
+                                                            {{-- validar, para mostrar el boton de cambio de máquin --}}
+                                                            @php 
+                                                                $se_puede_cambiar = true;
+                                                            @endphp
+                                                            @if($se_puede_cambiar)
+                                                                <a wire:click="open_modal_editar_balde_cambio_de_maquina({{ $prod_env->id }})"
+                                                                    class="dropdown-item" data-placement="top"
+                                                                    title="Editar {{ $prod_env->codigo }}">
+                                                                    <i class="fas fa-edit"></i> Realizar cambio de máquina
+                                                                </a>
+                                                            @endif
+
+                                                            <a wire:click="open_modal_editar_para_picar({{ $prod_env->id }})"
+                                                                class="dropdown-item" data-placement="top"
+                                                                title="Editar {{ $prod_env->codigo }}">
+                                                                <i class="fas fa-edit"></i> Registrar para picar
+                                                            </a>
+
                                                             {{-- <a wire:click="open_modal_editar_salida_mol({{ $prod_env->id }})"
                                                                 class="dropdown-item" data-placement="top"
                                                                 title="Editar {{ $prod_env->codigo }}">
@@ -602,7 +851,7 @@
                                                             </a>
                                                         @endif
     
-                                                        @if(count($prod_env->salidas_de_molino) == 0 && is_null($prod_env->balde_saldo_anterior))
+                                                        @if($prod_env->entrada_cantidad_de_baldes == 0 && is_null($prod_env->balde_saldo_anterior) )
                                                             <a wire:click.prevent="$emit('alerta', 'eliminar_producto_envasado', {{ $prod_env->id }})"
                                                                 class="dropdown-item" data-placement="top"
                                                                 title="Eliminar">
@@ -614,6 +863,19 @@
                                             </div>
                                         @elseif($prod_env->estado == 0)
                                             <button class="btn-sm btn-dark" wire:click="restaurar_maquina({{ $prod_env->id }})"><i class="fas fa-undo"></i> Restaurar </button>
+                                        @endif
+                                    </td>
+
+                                    {{-- baldes --}}
+                                    <td class="text-center">{{$prod_env->alk_total_baldes}}</td>
+                                    <td class="text-center">{{$prod_env->alk_total_kg}}</td>
+                                    <td class="text-center">{{$prod_env->alk_disponible_baldes}}</td>
+                                    <td class="text-center">{{$prod_env->alk_disponible_kg}}</td>
+                                    <td class="text-center">
+                                        @if($prod_env->para_picar == 1)
+                                            {{$prod_env->para_picar_kg_de_bolsitas}} kg
+                                        @else
+                                            -
                                         @endif
                                     </td>
                                 </tr>

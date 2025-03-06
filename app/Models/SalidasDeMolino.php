@@ -49,7 +49,27 @@ class SalidasDeMolino extends Model
     }
 
     public function producto_envasado(){
-        return $this->belongsTo(ProductosEnvasados::class, 'salida_de_molino_id');
+        return $this->belongsTo(ProductosEnvasados::class, 'producto_envasado_id');
+    }
+
+    /* attributes 
+     * cantidad_baldes
+    */
+    public function getCantidadBaldesAttribute(){
+        return count($this->detalle_salida_molinos);
+    }
+
+    /* attributes 
+     * cantidad_kg
+    */
+    public function getCantidadKgAttribute(){
+        $total = 0.00;
+        if($this->cantidad_baldes > 0){
+            foreach($this->detalle_salida_molinos as $sal_mol){
+                $total += $sal_mol->detalle_proceso_preparacion->kg_balde;
+            }
+        }
+        return round($total, 2);
     }
 
     /* REVERSE */

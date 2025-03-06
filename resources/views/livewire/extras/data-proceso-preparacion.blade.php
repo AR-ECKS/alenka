@@ -4,7 +4,7 @@
             <div class="input-group mb-2">
                 <div class="input-group-prepend">
                     <div class="input-group-text">
-                        <i class="fa-solid fa-lock"></i> <span class="ms-1">Código</span>
+                        <i class="fa fa-lock"></i> <span class="ms-1">Código</span>
                     </div>
                 </div>
                 <span class="form-control "> {{ $data_proceso_preparacion->codigo}}</span>
@@ -24,7 +24,7 @@
             <div class="input-group mb-2">
                 <div class="input-group-prepend">
                     <div class="input-group-text">
-                        <i class="fa-solid fa-calendar-days"></i> <span class="ms-1">Fecha</span>
+                        <i class="fa fa-calendar-days"></i> <span class="ms-1">Fecha</span>
                     </div>
                 </div>
                 <span class="form-control "> {{ $fec }}</span>
@@ -35,7 +35,7 @@
             {{-- <div class="input-group mb-2">
                 <div class="input-group-prepend">
                     <div class="input-group-text">
-                        <i class="fa-solid fa-flask"></i> <span class="ms-1">Sabor</span>
+                        <i class="fa fa-flask"></i> <span class="ms-1">Sabor</span>
                     </div>
                 </div>
                 <span class="form-control "> {{ $data_proceso_preparacion->sabor }}</span>
@@ -46,7 +46,7 @@
             <div class="input-group mb-2">
                 <div class="input-group-prepend">
                     <div class="input-group-text">
-                        <i class="fa-solid fa-user"></i> <span class="ms-1">Total</span>
+                        <i class="fa fa-user"></i> <span class="ms-1">Total</span>
                     </div>
                 </div>
                 <span class="form-control"> {{ $data_proceso_preparacion->total_kg }} kg.</span>
@@ -57,7 +57,7 @@
             <div class="input-group mb-2">
                 <div class="input-group-prepend">
                     <div class="input-group-text">
-                        <i class="fa-solid fa-weight-scale"></i> <span class="ms-1">Disponible.</span>
+                        <i class="fa fa-weight-scale"></i> <span class="ms-1">Disponible.</span>
                     </div>
                 </div>
                 <span class="form-control "> {{ $data_proceso_preparacion->disponible_kg }} kg.</span>
@@ -68,7 +68,7 @@
             <div class="input-group mb-2">
                 <div class="input-group-prepend">
                     <div class="input-group-text text-secondary">
-                        <i class="fa-solid fa-calendar-check"></i> <span class="ms-1">Ultima modificación</span>
+                        <i class="fa fa-calendar-check"></i> <span class="ms-1">Ultima modificación</span>
                     </div>
                 </div>
                 <span class="form-control text-secondary"> {{ $data_proceso_preparacion->updated_at }}</span>
@@ -79,7 +79,7 @@
             <div class="input-group mb-2">
                 <div class="input-group-prepend">
                     <div class="input-group-text">
-                        <i class="fa-solid fa-triangle-exclamation"></i> <span class="ms-1">Observación</span>
+                        <i class="fa fa-triangle-exclamation"></i> <span class="ms-1">Observación</span>
                     </div>
                 </div>
                 <span class="form-control "> {{ $data_proceso_preparacion->observacion }}</span>

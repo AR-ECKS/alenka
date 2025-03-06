@@ -4,7 +4,7 @@
             <div class="input-group mb-2">
                 <div class="input-group-prepend">
                     <div class="input-group-text">
-                        <i class="fa-solid fa-lock"></i> <span class="ms-1">Código</span>
+                        <i class="fas fa-lock"></i> <span class="ms-1">Código</span>
                     </div>
                 </div>
                 <span class="form-control "> {{ $data_despacho->codigo}}</span>
@@ -24,7 +24,7 @@
             <div class="input-group mb-2">
                 <div class="input-group-prepend">
                     <div class="input-group-text">
-                        <i class="fa-solid fa-calendar-days"></i> <span class="ms-1">Fecha</span>
+                        <i class="fas fa-calendar-days"></i> <span class="ms-1">Fecha</span>
                     </div>
                 </div>
                 <span class="form-control "> {{ $fec }}</span>
@@ -35,7 +35,7 @@
             <div class="input-group mb-2">
                 <div class="input-group-prepend">
                     <div class="input-group-text">
-                        <i class="fa-solid fa-flask"></i> <span class="ms-1">Sabor</span>
+                        <i class="fas fa-flask"></i> <span class="ms-1">Sabor</span>
                     </div>
                 </div>
                 <span class="form-control "> {{ $data_despacho->sabor }}</span>
@@ -46,7 +46,7 @@
             <div class="input-group mb-2">
                 <div class="input-group-prepend">
                     <div class="input-group-text">
-                        <i class="fa-solid fa-user"></i> <span class="ms-1">Entregado a</span>
+                        <i class="fas fa-user"></i> <span class="ms-1">Entregado a</span>
                     </div>
                 </div>
                 <span class="form-control @if(is_null($data_despacho->receptor_u)) text-danger text-center @endif"> {{ is_null($data_despacho->receptor_u)? 'Sin Asinar': $data_despacho->receptor_u->username }}</span>
@@ -57,7 +57,7 @@
             <div class="input-group mb-2">
                 <div class="input-group-prepend">
                     <div class="input-group-text">
-                        <i class="fa-solid fa-weight-scale"></i> <span class="ms-1">Peso total</span>
+                        <i class="fas fa-weight-scale"></i> <span class="ms-1">Peso total</span>
                     </div>
                 </div>
                 <span class="form-control "> {{ $data_despacho->total }} kg.</span>
@@ -68,7 +68,7 @@
             <div class="input-group mb-2">
                 <div class="input-group-prepend">
                     <div class="input-group-text text-secondary">
-                        <i class="fa-solid fa-calendar-check"></i> <span class="ms-1">Ultima modificación</span>
+                        <i class="fas fa-calendar-check"></i> <span class="ms-1">Ultima modificación</span>
                     </div>
                 </div>
                 <span class="form-control text-secondary"> {{ Carbon\Carbon::create($data_despacho->updated_at)->locale('es')->isoFormat('dddd, D \d\e MMM \d\e\l YYYY HH:mm') }}</span>
@@ -79,7 +79,7 @@
             <div class="input-group mb-2">
                 <div class="input-group-prepend">
                     <div class="input-group-text">
-                        <i class="fa-solid fa-triangle-exclamation"></i> <span class="ms-1">Observación</span>
+                        <i class="fas fa-triangle-exclamation"></i> <span class="ms-1">Observación</span>
                     </div>
                 </div>
                 <span class="form-control "> {{ $data_despacho->observacion }}</span>

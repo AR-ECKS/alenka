@@ -621,9 +621,9 @@
                                 <th>Turno</th>
                                 <th>Sabor</th>
                                 <th>Cantidad de Baldes</th>
-                                <th>Kg. aprox.</th>
                                 <th>Nombre</th>
                                 <th>Máquina</th>
+                                <th>En producción</th>
                                 <th>Observaciones</th>
                                 <th>Estado</th>
                                 <th class="text-right">Acciones</th>
@@ -640,10 +640,17 @@
                                     <td>{{ $salda_molino->fecha }}</td>
                                     <td>{{ $salda_molino->turno }}</td>
                                     <td>{{ $salda_molino->sabor }}</td>
-                                    <td>{{ count($salda_molino->detalle_salida_molinos) }}</td>
-                                    <td>{{ $salda_molino->total_aprox }}</td>
+                                    <td class="text-center">
+                                        {{ $salda_molino->cantidad_baldes }}
+                                        <span class="text-primary">({{$salda_molino->total_aprox}} kg)</span>
+                                    </td>
                                     <td>{{ $salda_molino->recepcionista->username }}</td>
                                     <td>{{ $salda_molino->maquina->nombre }}</td>
+                                    <td>
+                                        @if($salda_molino->producto_envasado)
+                                            {{ $salda_molino->producto_envasado->codigo }}
+                                        @endif
+                                    </td>
                                     <td>{{ $salda_molino->observacion }}</td>
                                     <td>
                                         @if ($salda_molino->estado == 1)
@@ -682,11 +689,13 @@
                                                                 title="Editar {{ $salda_molino->codigo }}">
                                                                 <i class="fas fa-edit"></i> Editar
                                                             </a>
-                                                            <a wire:click.prevent="$emit('alerta', 'eliminar_maquina', {{ $salda_molino->id }})"
-                                                                class="dropdown-item" data-placement="top"
-                                                                title="Eliminar">
-                                                                <i class="fas fa-trash"></i> Eliminar
-                                                            </a>
+                                                            @if(is_null($salda_molino->producto_envasado))
+                                                                <a wire:click.prevent="$emit('alerta', 'eliminar_maquina', {{ $salda_molino->id }})"
+                                                                    class="dropdown-item" data-placement="top"
+                                                                    title="Eliminar">
+                                                                    <i class="fas fa-trash"></i> Eliminar
+                                                                </a>
+                                                            @endif
                                                         {{-- @endif --}}
                                                     {{-- @endcan --}}
                                                 </div>
