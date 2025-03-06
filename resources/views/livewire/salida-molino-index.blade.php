@@ -2,7 +2,7 @@
     <div class="float-right mt-3">
         @if($operation == '')
             <a type="button" class="btn btn-primary text-white" wire:click="open_modal_crear_salida_mol">
-                <i class="fas fa-database"></i> Nueva Salida de Molino 
+                <i class="fas fa-database"></i> Nueva Salida de Molino / Entrega a producción
             </a>
         @endif
     </div>
@@ -10,10 +10,10 @@
     <br><br><br>
     <div class="tab-content">
         @if($operation=='create_salida_molino')
-            <div class="card-body p-3">
+            <div class="card-body ">
                 <div class="modal-header">
                     <h5 class="modal-title mt-0 text-center">
-                        CREAR NUEVA SALIDA DE MOLINO
+                        ENTREGA A PRODUCCIÓN
                     </h5>
                         <button type="button" class="btn btn-close" data-bs-dismiss="modal" aria-label="close" wire:click="close_modal_crear_salida_mol"></button>
                 </div>
@@ -34,7 +34,7 @@
                                 <span class="text-danger">{{ $message }}</span>
                             @enderror
                         </div>
-    
+
                         <div class="col-md-6">
                             <div class="input-group mb-2">
                                 <div class="input-group-prepend">
@@ -54,7 +54,7 @@
                                 <span class="text-danger">{{ $message }}</span>
                             @enderror
                         </div>
-    
+
                         <div class="col-md-6">
                             <div class="input-group mb-2">
                                 <div class="input-group-prepend">
@@ -93,7 +93,7 @@
                                 <span class="text-danger">{{ $message }}</span>
                             @enderror
                         </div>
-    
+
                         <div class="col-md-6">
                             <div class="input-group mb-2">
                                 <div class="input-group-prepend">
@@ -113,7 +113,7 @@
                                 <span class="text-danger">{{ $message }}</span>
                             @enderror
                         </div>
-    
+
                         <div class="col-md-6">
                             <div class="input-group mb-2">
                                 <div class="input-group-prepend">
@@ -128,7 +128,7 @@
                                 <span class="text-danger">{{ $message }}</span>
                             @enderror
                         </div>
-    
+
                         <div class="col-md-8">
                             <div class="input-group mb-2">
                                 <div class="input-group-prepend">
@@ -143,7 +143,7 @@
                                 <span class="text-danger">{{ $message }}</span>
                             @enderror
                         </div>
-    
+
                         <div class="col-md-4">
                             <div class="input-group mb-2">
                                 <div class="input-group-prepend">
@@ -191,9 +191,9 @@
                             @enderror
                         </div>
                         <div class="col-md-3">
-                            <button type="button" class="btn btn-primary" wire:click="agregar_balde">AGREGAR</button>
+                            <button type="button" class="btn btn-success" wire:click="agregar_balde">AGREGAR</button>
                             <br>
-                            <button type="button" class="btn btn-danger" wire:click="limpiar_balde">LIMPIAR</button>
+                            {{-- <button type="button" class="btn btn-danger" wire:click="limpiar_balde">LIMPIAR</button> --}}
                         </div>
                         {{-- <div class="col-md-12">
                             <p>{{json_encode($LISTA_DETALLE_PREPARACION)}}</p>
@@ -291,7 +291,7 @@
                                 <span class="text-danger">{{ $message }}</span>
                             @enderror
                         </div>
-    
+
                         <div class="col-md-6">
                             <div class="input-group mb-2">
                                 <div class="input-group-prepend">
@@ -311,7 +311,7 @@
                                 <span class="text-danger">{{ $message }}</span>
                             @enderror
                         </div>
-    
+
                         <div class="col-md-6">
                             <div class="input-group mb-2">
                                 <div class="input-group-prepend">
@@ -350,7 +350,7 @@
                                 <span class="text-danger">{{ $message }}</span>
                             @enderror
                         </div>
-    
+
                         <div class="col-md-6">
                             <div class="input-group mb-2">
                                 <div class="input-group-prepend">
@@ -370,7 +370,7 @@
                                 <span class="text-danger">{{ $message }}</span>
                             @enderror
                         </div>
-    
+
                         <div class="col-md-3">
                             <div class="input-group mb-2">
                                 <div class="input-group-prepend">
@@ -399,7 +399,7 @@
                                 <span class="text-danger">{{ $message }}</span>
                             @enderror
                         </div>
-    
+
                         <div class="col-md-8">
                             <div class="input-group mb-2">
                                 <div class="input-group-prepend">
@@ -414,7 +414,7 @@
                                 <span class="text-danger">{{ $message }}</span>
                             @enderror
                         </div>
-    
+
                         <div class="col-md-4">
                             <div class="input-group mb-2">
                                 <div class="input-group-prepend">
@@ -530,13 +530,16 @@
                     <button type="button" class="btn btn-primary" wire:click="save_modal_editar_salida_mol">ACTUALIZAR</button>
                 </div>
             </div>
-        @else 
+        @else
             {{-- -------------- MAIN ------------------------}}
             <div class="row">
-                <div class="col-md-12">
-                    <h3 class="text-center">SALIDAS DE MOLINO</h3>
+                <div class="card-header p-0 position-relative mt-n5 mx-3 z-index-2 py-2">
+                    <br>
+                    <h5 class="text-center text-white bg-gradient-to-r from-indigo-500 to-blue-500 py-3 rounded shadow-lg uppercase tracking-wide">
+                     ENTREGA A PRODUCCIÓN
+                    </h3>
                 </div>
-    
+
                 <div class="col-md-3">
                     <div class="input-group mb-2">
                         <div class="input-group-prepend">
@@ -553,7 +556,7 @@
                         </select>
                     </div>
                 </div>
-    
+
                 <div class="col-md-3">
                     @if($statusMes)
                         <div class="input-group mb-2">
@@ -572,7 +575,7 @@
                         </div>
                     @endif
                 </div>
-    
+
                 <div class="col-md-3">
                     @if($statusDia)
                         <div class="input-group mb-2">
@@ -601,15 +604,15 @@
                                     <b></b>
                                 </label>
                             </div> --}}
-                            <a type="button" class="btn btn-success text-white" 
+                            <a type="button" class="btn btn-success text-white"
                                 target="_blank" href="{{ route('salida_de_molino.pdf', ['fecha' => $anio .'-'. $mes .'-'. $dia])}}">GENERAR PDF</a>
                         </div>
                     @endif
                 </div>
 
             </div>
-    
-    
+
+
             @if(count($salidas_molino) > 0)
                 <div class="table-responsive-xl">
                     <table class="table table-sm text-sm table-striped">
@@ -659,8 +662,8 @@
                                             <span class="badge bg-danger">Inactivo</span>
                                         @endif
                                     </td>
-    
-    
+
+
                                     <td class="td-actions text-right">
                                         @if ($salda_molino->estado == 1)
                                             <div class="btn-group">

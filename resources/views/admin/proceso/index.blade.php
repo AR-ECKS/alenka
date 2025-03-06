@@ -28,12 +28,15 @@
         </script>
     @endif
     {{-- INIT INSERT CUSTOM --}}
-    <div class="container-fluid py-4">
+    <div class="container-fluid py-4 ">
         <div class="row">
             <div class="col-12">
                 <div class="card">
-                    <div class="card-header p-0 position-relative mt-n5 mx-3 z-index-2 ">
-                        <h3>PREPARACIONES</h3>
+                    <div class="card-header p-0 position-relative mt-n5 mx-3 z-index-2 py-2">
+                        <br>
+                        <h5 class="text-center text-white bg-gradient-to-r from-indigo-500 to-blue-500 py-3 rounded shadow-lg uppercase tracking-wide">
+                            PREPARACIONES
+                        </h3>
                     </div>
                     <div class="card-body p-3">
                         <!-- LIVEWIRE -->
@@ -42,10 +45,10 @@
                 </div>
             </div>
         </div>
-
     </div>
-    {{--  END INSERT CUSTOM --}}
 
+    {{--  END INSERT CUSTOM --}}
+{{--
     <div class="container-fluid py-4">
         <div class="row">
             <div class="col-12">
@@ -182,7 +185,7 @@
 
     </div>
 </div>
-</div>
+</div> --}}
 
 <script>
     $(document).ready(function() {
