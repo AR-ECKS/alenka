@@ -8,12 +8,14 @@ use Livewire\WithPagination;
 use App\Models\ProcesoPreparacion;
 use App\Models\DetalleProcesoPreparacion;
 use App\Models\Despacho;
+use App\Models\RegistroParaPicar;
 use App\Models\User;
 use App\Models\PreSalidaMolinos;
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
+use Illuminate\Validation\Rule;
 
 class ProcesoPreparacionIndex extends Component
 {
@@ -30,7 +32,8 @@ class ProcesoPreparacionIndex extends Component
     {
         return view('livewire.proceso-preparacion-index',[
             'procesos_preparacion' => $this->get_data(),
-            'despachos' => $this->get_despachos()
+            'despachos' => $this->get_despachos(),
+            'aumento_para_picar' => $this->get_registros_para_picar()
         ]);
     }
 
@@ -42,21 +45,32 @@ class ProcesoPreparacionIndex extends Component
     }
 
     private function get_despachos(){
-        $fechaActual = now()->format('Y-m-d'); // Obtener la fecha actual en formato YYYY-MM-DD
-        return Despacho::select(
-                'despachos.id',
-                'despachos.codigo',
-                'despachos.sabor',
-                'despachos.observacion',
-                'despachos.fecha',
-                'despachos.receptor',
-            )
-            ->leftJoin('proceso_preparacion', 'proceso_preparacion.despacho_id', '=', 'despachos.id')
-            #->where('despachos.estado', '<>', 0)
-            ->whereNull('proceso_preparacion.despacho_id')
-            ->where('tipo', 1)
-            ->whereDate('despachos.created_at', $fechaActual)
-            ->get();
+        if($this->operation=='create_proccess_preparation' || $this->operation=='edit_proccess_preparation'){
+            #$fechaActual = now()->format('Y-m-d'); // Obtener la fecha actual en formato YYYY-MM-DD
+            $consulta = Despacho::select(
+                    'despachos.id',
+                    'despachos.codigo',
+                    'despachos.sabor',
+                    'despachos.observacion',
+                    'despachos.fecha',
+                    'despachos.receptor',
+                )
+                ->leftJoin('proceso_preparacion', 'proceso_preparacion.despacho_id', '=', 'despachos.id')
+                #->where('despachos.estado', '<>', 0)
+                ->where('tipo', 1)
+                ->whereDate('despachos.created_at', $this->fecha); # fechaActual
+                if($this->operation=='edit_proccess_preparation'){
+                    $consulta->where(function($query){
+                        $query->whereNull('proceso_preparacion.despacho_id')
+                            ->orWhere('proceso_preparacion.id', $this->edit_id_proceso_preparacion);
+                    });
+                } else {
+                    $consulta->whereNull('proceso_preparacion.despacho_id');
+                }
+            return $consulta->get();
+        } else {
+            return [];
+        }
     }
 
     /* ********************** INIT RULES ************************** */
@@ -69,11 +83,14 @@ class ProcesoPreparacionIndex extends Component
     protected function rules(){
         if($this->operation=='create_proccess_preparation'){
             return $this->rulesForCreateProcessPreparation();
-        } else if($this->operation=='admin_proccess_preparation'){
+        } else if($this->operation=='edit_proccess_preparation'){
+            return $this->rulesForEditProcessPreparation();
+        }else if($this->operation=='admin_proccess_preparation'){
             return $this->rulesForAdminProcessPreparation();
         }
         return array_merge(
             $this->rulesForCreateProcessPreparation(),
+            $this->rulesForEditProcessPreparation(),
             $this->rulesForCreateProcessPreparation()
         );
     }
@@ -85,15 +102,17 @@ class ProcesoPreparacionIndex extends Component
     public $total_kg;
     public $disponible_kg;
     public $despacho_id;
+    public $para_picar_id;
     public $observacion;
     public $despacho_actual;
     public function rulesForCreateProcessPreparation(){
         return [
-            'codigo' => 'required|unique:proceso_preparacion,codigo|min:10',
+            'codigo' => 'required|string|unique:proceso_preparacion,codigo|min:10|max:100',
             'fecha' => 'required|date',
             'total_kg' => 'required|numeric|min:0.1',
             'disponible_kg' => 'required|numeric|min:0.1',
             'despacho_id' => 'required',
+            'para_picar_id' => 'nullable|exists:registro_para_picar,id',
             'observacion' => 'nullable|string|max:255',
         ];
     }
@@ -111,11 +130,13 @@ class ProcesoPreparacionIndex extends Component
     public function close_modal_crear_prep_proceso(){
         $this->operation = '';
         $this->reset([
+            'edit_id_proceso_preparacion', # PARA EDITAR
             'codigo',
             'fecha',
             'total_kg',
             'disponible_kg',
             'despacho_id',
+            'para_picar_id',
             'observacion',
         ]);
         $this->despacho_actual = null;
@@ -142,6 +163,7 @@ class ProcesoPreparacionIndex extends Component
                 $proceso_preparacion->codigo = $this->codigo;
                 $proceso_preparacion->fecha = $this->fecha;
                 $proceso_preparacion->despacho_id = $this->despacho_id;
+                $proceso_preparacion->recepcion_para_picar_id = (is_null($this->para_picar_id) || $this->para_picar_id=="")? null: $this->para_picar_id;
                 $proceso_preparacion->total_kg = $this->total_kg;
                 $proceso_preparacion->disponible_kg = $this->disponible_kg;
                 $proceso_preparacion->observacion = is_null($this->observacion) ? '' : $this->observacion;
@@ -152,14 +174,10 @@ class ProcesoPreparacionIndex extends Component
                 DB::commit();
                 $this->emit('success', 'Se ha creado exitosamente una nueva preparación');
                 $this->close_modal_crear_prep_proceso();
-<<<<<<< HEAD
                 if($procesar){
                     $this->open_modal_admin_prep_proceso($proceso_preparacion->id);
                 }
             } catch(\Exception $e){
-=======
-            } catch (\Exception $e) {
->>>>>>> 3eb850f1ab25d2dbc5d70204d179b029c0643dd6
                 DB::rollBack();
                 $this->emit('error', 'Error al crear la nueva preparación. ' . $e->getMessage());
             }
@@ -168,7 +186,7 @@ class ProcesoPreparacionIndex extends Component
     }
 
     public function updatedDespachoId(){
-        $this->despacho_actual = Despacho::where('id', $this->despacho_id)->first();
+        /* $this->despacho_actual = Despacho::where('id', $this->despacho_id)->first();
         $total_aprox = 0;
         if($this->despacho_actual && $this->despacho_actual->detalle_despachos){
             foreach ($this->despacho_actual->detalle_despachos as $value) {
@@ -178,11 +196,186 @@ class ProcesoPreparacionIndex extends Component
                     $total_aprox += ($value->cantidad_unidad * $this->U_1LB_A_KG);
                 }
             }
+        } 
+        if($this->para_picar_id && $this->para_picar_id !== ""){
+            $picacion = RegistroParaPicar::where('id', $this->para_picar_id)
+                ->where('estado', '<>', 0)
+                ->first();
+            if($picacion){
+                $total_aprox = $picacion->cantidad_kg;
+            }
         }
         $this->total_kg = round( floatval($total_aprox), 2);
-        $this->disponible_kg = $this->total_kg;
+        $this->disponible_kg = $this->total_kg; */
+    }
+
+    public function on_change_despacho(){
+        $this->reset(['para_picar_id']);
+        $this->resetValidation(['para_picar_id']);
+
+        $this->calcular_total_kg();
+    }
+
+    public function calcular_total_kg(){
+        if($this->despacho_id && $this->despacho_id !== ""){
+            $this->despacho_actual = Despacho::where('id', $this->despacho_id)->first();
+            $total_aprox = 0;
+            if($this->despacho_actual && $this->despacho_actual->detalle_despachos){
+                foreach ($this->despacho_actual->detalle_despachos as $value) {
+                    if($value->materia_prima->unidad_medida == 'kg'){
+                        $total_aprox += $value->cantidad_unidad;
+                    } else if($value->materia_prima->unidad_medida == 'lb'){
+                        $total_aprox += ($value->cantidad_unidad * $this->U_1LB_A_KG);
+                    }
+                }
+            } 
+            if($this->para_picar_id && $this->para_picar_id !== ""){
+                $picacion = RegistroParaPicar::where('id', $this->para_picar_id)
+                    ->where('estado', '<>', 0)
+                    ->first();
+                if($picacion){
+                    $total_aprox += $picacion->cantidad_kg;
+                }
+            }
+            $this->total_kg = round( floatval($total_aprox), 2);
+            if($this->operation == 'create_proccess_preparation'){
+                $this->disponible_kg = $this->total_kg;
+            } else if($this->operation == 'edit_proccess_preparation'){
+                $buscar = ProcesoPreparacion::where('id', $this->edit_id_proceso_preparacion)->where('estado', '<>', 0)->first();
+                if($buscar){
+                    # calcular
+                    if($this->para_picar_id && $this->para_picar_id !== ""){
+                        # sumar
+                        $picacion = RegistroParaPicar::where('id', $this->para_picar_id)->where('estado', '<>', 0)->first();
+                        if($picacion){
+                            $this->disponible_kg = $buscar->registro_para_picar? 
+                                $buscar->disponible_kg - $buscar->registro_para_picar->cantidad_kg + $picacion->cantidad_kg:
+                                $this->disponible_kg + $picacion->cantidad_kg;
+                        }
+                    } else {
+                        # restar
+                        $this->disponible_kg = $buscar->registro_para_picar? 
+                            $this->disponible_kg - $buscar->registro_para_picar->cantidad_kg:
+                            $buscar->disponible_kg;
+                    }
+                }
+            }
+        } else {
+            if($this->operation == "create_proccess_preparation"){
+                $this->reset([
+                    'total_kg',
+                    'disponible_kg'
+                ]);
+                $this->despacho_actual = null;
+            } else if($this->operation == "edit_proccess_preparation"){
+                $this->reset([
+                    'total_kg',
+                ]); 
+                $this->despacho_actual = null;
+            }
+        }
     }
     
+    private function get_registros_para_picar(){
+        if(($this->despacho_actual && ($this->operation=='create_proccess_preparation' || $this->operation=='edit_proccess_preparation') && $this->despacho_id !== "") ){
+
+            $para_picar_no_referenciados = DB::table('registro_para_picar')
+                ->leftJoin('proceso_preparacion', function ($join) {
+                    $join->on('proceso_preparacion.recepcion_para_picar_id', '=', 'registro_para_picar.id')
+                        ->where('proceso_preparacion.estado', '<>', 0);
+                })
+                #->where('registro_para_picar.estado', '<>', 0)
+                ->where('registro_para_picar.sabor', $this->despacho_actual->sabor)
+                ->whereDate('registro_para_picar.fecha_fin', '<', $this->fecha)
+                
+                ->where(function ($query) {
+                    $query->whereNull('proceso_preparacion.id')
+                        ->orWhere('proceso_preparacion.id', $this->edit_id_proceso_preparacion);
+                })
+                ->select('registro_para_picar.*')
+                ->get();
+            $this->emit('mensaje', 'es '. json_encode($para_picar_no_referenciados));
+
+            $lista = [];
+            foreach($para_picar_no_referenciados as $tmp){
+                $lista[] = $tmp->id;
+            }
+
+            $segundo = RegistroParaPicar::where('estado', '<>', 0)
+                ->whereIn('id', $lista);
+
+            return $segundo->get();
+        }
+        return [];
+    }
+
+    /* *********************************************************** */
+
+    public $edit_id_proceso_preparacion;
+    public function rulesForEditProcessPreparation(){
+        return [
+            'edit_id_proceso_preparacion' => 'required|exists:proceso_preparacion,id',
+            'codigo' => [
+                'required',
+                'string',
+                Rule::unique('proceso_preparacion', 'codigo')->ignore($this->edit_id_proceso_preparacion),
+                'min:10',
+                'max:100'
+            ],
+            'fecha' => 'required|date',
+            'total_kg' => 'required|numeric|min:0.1',
+            'disponible_kg' => 'required|numeric|min:0',
+            'despacho_id' => 'required',
+            'para_picar_id' => 'nullable|exists:registro_para_picar,id',
+            'observacion' => 'nullable|string|max:255',
+        ];
+    }
+
+    public function open_modal_edit_prep_proceso($id){
+        $this->close_modal_crear_prep_proceso();
+        $proce_preparacion = ProcesoPreparacion::where('id', $id)->where('estado', '<>', 0)->first();
+        if($proce_preparacion){
+            $this->edit_id_proceso_preparacion = $proce_preparacion->id;
+            $this->codigo = $proce_preparacion->codigo;
+            $this->fecha = $proce_preparacion->fecha;
+            $this->total_kg = $proce_preparacion->total_kg;
+            $this->disponible_kg = $proce_preparacion->disponible_kg;
+            $this->despacho_id = $proce_preparacion->despacho_id;
+            $this->para_picar_id = $proce_preparacion->recepcion_para_picar_id;
+            $this->observacion = $proce_preparacion->observacion;
+            $this->operation = "edit_proccess_preparation";
+            $this->calcular_total_kg();
+        }
+    }
+
+    public function store_modal_editar_prep_proceso(){
+        if($this->operation=='edit_proccess_preparation'){
+            $this->validate();
+            try {
+                DB::beginTransaction();
+
+                // actualizar
+                $proceso_preparacion = ProcesoPreparacion::where('id', $this->edit_id_proceso_preparacion)->first();
+                $proceso_preparacion->codigo = $this->codigo;
+                $proceso_preparacion->fecha = $this->fecha;
+                $proceso_preparacion->despacho_id = $this->despacho_id;
+                $proceso_preparacion->recepcion_para_picar_id = (is_null($this->para_picar_id) || $this->para_picar_id=="")? null: $this->para_picar_id;
+                $proceso_preparacion->total_kg = $this->total_kg;
+                $proceso_preparacion->disponible_kg = $this->disponible_kg;
+                $proceso_preparacion->observacion = is_null($this->observacion) ? '' : $this->observacion;
+                $proceso_preparacion->id_user = Auth::id();
+
+                $proceso_preparacion->save();
+
+                DB::commit();
+                $this->emit('success', 'Se ha actualizado exitosamente la preparación');
+                $this->close_modal_crear_prep_proceso();
+            } catch(\Exception $e){
+                DB::rollBack();
+                $this->emit('error', 'Error al intentar actuallizar la preparación. ' . $e->getMessage());
+            }
+        }
+    }
 
     /* *********************************************************** */
 

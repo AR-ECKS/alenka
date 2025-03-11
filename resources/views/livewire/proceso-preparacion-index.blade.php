@@ -9,12 +9,19 @@
 
     {{-- <br><br><br> --}}
     <div class="tab-content">
-        @if($operation=='create_proccess_preparation')
+        @if($operation=='create_proccess_preparation' || $operation=='edit_proccess_preparation')
         <div class="modal fade show" style="display: block;" id="modalCrearPreparacion" >
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
-                    <h5 class="modal-title mt-0 text-center">NUEVA PREPARACIÓN</h5>
+                    <h5 class="modal-title mt-0 text-center">
+                        @if($operation=='create_proccess_preparation')
+                            NUEVA
+                        @else 
+                            EDITAR
+                        @endif
+                        PREPARACIÓN
+                    </h5>
                         <button type="button" class="btn btn-close" data-bs-dismiss="modal" aria-label="close" wire:click="close_modal_crear_prep_proceso"></button>
                 </div>
                 <div class="modal-body">
@@ -57,7 +64,7 @@
                                         <b>Materia Prima recibida</b>
                                     </label>
                                 </div>
-                                <select class="form-control @error('despacho_id') border-danger @enderror" wire:model="despacho_id" id="despacho_id">
+                                <select class="form-control @error('despacho_id') border-danger @enderror" wire:model="despacho_id" id="despacho_id" wire:change="on_change_despacho" @if($operation=='edit_proccess_preparation') disabled @endif>
                                     <option value="">Seleccione Despacho</option>
                                     @foreach($despachos as $des)
                                         <option value="{{ $des->id }}">{{ $des->codigo }}</option>
@@ -87,6 +94,28 @@
                                 <span>{{ json_encode($despacho_actual->detalle_despachos) }}</span> --}}
                             @endif
                         </div>
+
+                        <div class="col-md-12">
+                            <div class="input-group mb-2">
+                                <div class="input-group-prepend">
+                                    <label class="input-group-text" for="para_picar_id">
+                                        <i class="fas fa-calendar pe-1"></i>
+                                        <b>Registros para Picar</b>
+                                    </label>
+                                </div>
+                                <select class="form-control @error('para_picar_id') border-danger @enderror" wire:model="para_picar_id" id="para_picar_id" wire:change="calcular_total_kg">
+                                    <option value="">Seleccione </option>
+                                    @foreach($aumento_para_picar as $des)
+                                        <option value="{{ $des->id }}">{{ $des->codigo }} .:: {{ $des->cantidad_kg }} kg. .:: {{ $des->cantidad_bolsitas }} u. .:: {{ $des->fecha_inicio }} al {{ $des->fecha_fin }} .:: {{ $des->observacion }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            @error('para_picar_id')
+                                <span class="text-danger">{{ $message }}</span>
+                            @enderror
+                        </div>
+
+                        {{-- <div class="col-md-6"></div> --}}
 
                         <div class="col-md-6">
                             <div class="input-group mb-2">
@@ -137,11 +166,12 @@
                 </div>
                 <div class="modal-footer d-flex justify-content-center">
                     <button type="button" class="btn btn-danger" wire:click="close_modal_crear_prep_proceso">CANCELAR</button>
-                    <button type="button" class="btn btn-primary" wire:click="store_modal_crear_prep_proceso">GUARDAR</button>
-<<<<<<< HEAD
-                    <button type="button" class="btn btn-primary" wire:click="store_modal_crear_prep_proceso({{true}})">GUARDAR Y PROCESAR</button>
-=======
->>>>>>> 3eb850f1ab25d2dbc5d70204d179b029c0643dd6
+                    @if($operation=='create_proccess_preparation')
+                        <button type="button" class="btn btn-primary" wire:click="store_modal_crear_prep_proceso">GUARDAR</button>
+                        <button type="button" class="btn btn-primary" wire:click="store_modal_crear_prep_proceso({{true}})">GUARDAR Y PROCESAR</button>
+                    @else
+                        <button type="button" class="btn btn-primary" wire:click="store_modal_editar_prep_proceso">ACTUALIZAR</button>
+                    @endif
                 </div>
             </div>
         @elseif($operation == 'admin_proccess_preparation')
@@ -254,11 +284,7 @@
                     @endif
                 </div>
                 <div class="modal-footer d-flex justify-content-center">
-<<<<<<< HEAD
                     <button type="button" class="btn btn-danger" wire:click="close_modal_admin_prep_proceso">VOLVER</button>
-=======
-                    <button type="button" class="btn btn-primary" wire:click="close_modal_admin_prep_proceso">GUARDAR</button>
->>>>>>> 3eb850f1ab25d2dbc5d70204d179b029c0643dd6
                     {{-- <button type="button" class="btn btn-primary" wire:click="">GUARDAR Y PROCESAR</button> --}}
                 </div>
             </div>
@@ -273,49 +299,6 @@
                         @include('livewire.extras.details-proceso_preparacion', [
                             'carac_proceso_preparacion' => $det_proceso_preparacion
                         ])
-                        {{-- <div class="col-md-12">Detalles de la preparación</div>
-                        <div class="col-md-4"><b>Código:</b> {{$adm_proceso_preparacion->codigo}}</div>
-                        <div class="col-md-4"><b>Fecha:</b> {{$adm_proceso_preparacion->fecha}}</div>
-                        <div class="col-md-4"><b>Materia prima:</b> {{$adm_proceso_preparacion->despacho->codigo}}</div>
-                        <div class="col-md-4"><b>Kg. Totales:</b> {{$adm_proceso_preparacion->total_kg}}</div>
-                        <div class="col-md-4"><b>Kg. Disponibles</b> {{$adm_proceso_preparacion->disponible_kg}}</div>
-                        <div class="col-md-4"><b>Observación:</b> {{$adm_proceso_preparacion->observacion}}</div> --}}
-                    </div>
-                    <div>
-                        {{-- @if(count($detalles_procesos) > 0)
-                            <div class="table-responsive-xl">
-                                <table class="table table-sm text-sm table-striped">
-                                    <thead>
-                                        <tr>
-                                            <th>Nro. balde</th>
-                                            <th>Kilogramos</th>
-                                            <th>Fecha</th>
-                                            <th>Observación</th>
-                                            <th class="text-right">Acciones</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach($detalles_procesos as $det)
-                                            <tr>
-                                                <th>{{$det->nro_balde}}</th>
-                                                <td>{{$det->kg_balde}}</td>
-                                                <td>{{$det->fecha}}</td>
-                                                <td>{{$det->observacion}}</td>
-                                                <td>
-                                                    @if($det->estado == 1)
-                                                        <button type="button" class="btn btn-danger" title="eliminar" wire:click="delete_detalle_proceso_preparacion({{ $det->id }})">
-                                                            <i class="fas fa-trash"></i>
-                                                        </button>
-                                                    @endif
-                                                </td>
-                                            </tr>
-                                        @endforeach
-                                    </tbody>
-                                </table>
-                            </div>
-                        @else
-                            NO HAY DATOS
-                        @endif --}}
                     </div>
                 </div>
                 <div class="modal-footer d-flex justify-content-center">
@@ -373,6 +356,11 @@
                                                             title="Ver detalles">
                                                             <i class="fas fa-eye"></i> Ver Detalles
                                                         </a>
+                                                        <a wire:click="open_modal_edit_prep_proceso({{ $processs->id }})"
+                                                            class="dropdown-item" data-placement="top"
+                                                            title="Ver detalles">
+                                                            <i class="fas fa-edit"></i> Editar
+                                                        </a>
                                                         {{-- @can('crear_entrega_a_produccion') --}}
                                                         <a wire:click="open_modal_admin_prep_proceso({{ $processs->id }})"
                                                             class="dropdown-item" data-placement="top"
@@ -380,11 +368,13 @@
                                                             <i class="fas fa-bucket"></i> Adm. Baldes
                                                         </a>
                                                     {{-- @endcan --}}
-                                                    <a wire:click.prevent="$emit('alerta', 'eliminar_proceso_preparacion', {{ $processs->id }})"
-                                                        class="dropdown-item" data-placement="top"
-                                                        title="Eliminar">
-                                                        <i class="fas fa-trash"></i> Eliminar
-                                                    </a>
+                                                    @if(count($processs->detalle_proceso_preparacion) == 0)
+                                                        <a wire:click.prevent="$emit('alerta', 'eliminar_proceso_preparacion', {{ $processs->id }})"
+                                                            class="dropdown-item" data-placement="top"
+                                                            title="Eliminar">
+                                                            <i class="fas fa-trash"></i> Eliminar
+                                                        </a>
+                                                    @endif
                                                 </div>
                                             </div>
                                         @elseif($processs->estado == 0)

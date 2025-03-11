@@ -15,9 +15,18 @@ class PlantillaProductosEnvasados extends Fpdf {
 
     public $START_X = 9;
 
+    public $MAX_FILAS = 20;
+
     private $DIA = '';
     private $MES = '';
     private $ANIO = '';
+
+    private $TOTAL_SALDO_ANTERIOR = '';
+    private $TOTAL_CAMBIO_MAQUINA = '';
+    private $TOTAL_ENTRADA_MOLINO = '';
+    private $TOTAL_SOBRO_DEL_DIA = '';
+    private $TOTAL_CAJAS_CAJAS = '';
+    private $TOTAL_CAJAS_BOLSAS = '';
 
     public $START_X_ATTR = [
         'COL_1' => [
@@ -286,6 +295,28 @@ class PlantillaProductosEnvasados extends Fpdf {
 
     }
 
+    public function Footer(){
+
+        // Go to 1.5 cm from bottom
+        $this->SetY(-15);
+        // Select Arial italic 8
+        $this->SetFont('Arial', 'I', 8);
+        // Print centered page number
+        $this->Cell(0, 10, 'página '.$this->PageNo(), 0, 0, 'C');
+
+        $this->setFont('Arial', 'B', 9);
+        $this->SetXY($this->START_X_ATTR['COL_3']['X'], $this->ALTURA_DATOS + $this->ALTURA_CELDA * $this->MAX_FILAS);
+        $this->Cell($this->START_X_ATTR['COL_3']['WIDTH'], $this->ALTURA_CELDA, utf8_decode( 'TOTALES' ), 1, 0, 'C');
+
+        $this->Cell($this->START_X_ATTR['COL_4']['WIDTH'], $this->ALTURA_CELDA, utf8_decode( $this->TOTAL_SALDO_ANTERIOR ), 1, 0, 'C');
+        $this->Cell($this->START_X_ATTR['COL_5']['WIDTH'], $this->ALTURA_CELDA, utf8_decode( $this->TOTAL_CAMBIO_MAQUINA ), 1, 0, 'C');
+        $this->Cell($this->START_X_ATTR['COL_6']['WIDTH'], $this->ALTURA_CELDA, utf8_decode( $this->TOTAL_ENTRADA_MOLINO ), 1, 0, 'C');
+        $this->Cell($this->START_X_ATTR['COL_7']['WIDTH'], $this->ALTURA_CELDA, utf8_decode( $this->TOTAL_SOBRO_DEL_DIA ), 1, 0, 'C');
+
+        $this->Cell($this->START_X_ATTR['COL_8']['WIDTH'], $this->ALTURA_CELDA, utf8_decode( $this->TOTAL_CAJAS_CAJAS ), 1, 0, 'C');
+        $this->Cell($this->START_X_ATTR['COL_9']['WIDTH'], $this->ALTURA_CELDA, utf8_decode( $this->TOTAL_CAJAS_BOLSAS ), 1, 0, 'C');
+    }
+
     public function SetDia($val =''){
         $this->DIA = $val;
     }
@@ -296,6 +327,25 @@ class PlantillaProductosEnvasados extends Fpdf {
 
     public function SetAnio($val =''){
         $this->ANIO = $val;
+    }
+
+    public function SetTotalBaldeAnterior($val =''){
+        $this->TOTAL_SALDO_ANTERIOR = $val;
+    }
+    public function SetTotalCambioMaquina($val =''){
+        $this->TOTAL_CAMBIO_MAQUINA = $val;
+    }
+    public function SetTotalEntradaMolino($val =''){
+        $this->TOTAL_ENTRADA_MOLINO = $val;
+    }
+    public function SetTotalSobroDelDia($val =''){
+        $this->TOTAL_SOBRO_DEL_DIA = $val;
+    }
+    public function SetTotalCajasCajas($val =''){
+        $this->TOTAL_CAJAS_CAJAS = $val;
+    }
+    public function SetTotalCajasBolsas($val =''){
+        $this->TOTAL_CAJAS_BOLSAS = $val;
     }
 
     private function InicializaAnchoTabla(){

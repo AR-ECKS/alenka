@@ -48,6 +48,11 @@ class ProcesoPreparacion extends Model
         return $this->belongsTo(Despacho::class, 'despacho_id');
     }
 
+    public function registro_para_picar()
+    {
+        return $this->belongsTo(RegistroParaPicar::class, 'recepcion_para_picar_id');
+    }
+
     function detalle_proceso_preparacion()
     {
         return $this->hasMany(DetalleProcesoPreparacion::class)

@@ -8,6 +8,7 @@ use App\PDF\PlantillaProductosEnvasados;
 use App\PDF\PlantillaInventarioProductosEnvasados;
 
 use App\Models\ProductosEnvasados;
+use App\Models\Maquinas;
 
 use App\Services\InventarioProductosEnvasadosService;
 
@@ -31,6 +32,8 @@ class ProductosEnvasadosController extends Controller
             //echo "La fecha no es válida.";
             return;
         }
+
+        $MAX_MAQUINAS = 2;
 
         $registro_productos = ProductosEnvasados::where('fecha', $fecha)
             ->where('estado', '<>', 0)
@@ -57,82 +60,160 @@ class ProductosEnvasadosController extends Controller
                 $total_cajas = 0;
                 $total_bolsas = 0;
 
-                foreach ($registro_productos as $val) {
-                    # MAQ.
-                    $maq = trim($val->maquina->nombre);
-                    $maq_fin = mb_strtoupper($maq);
-                    if(mb_strlen($maq) >= 5){
-                        $part = explode( ' ', $maq_fin);
-                        if(count($part) >= 2){
-                            $maq_fin = ((mb_strlen($part[0])> 4 )? mb_substr($part[0], 0, 3): $part[0])
-                                . ' '. mb_substr($part[count($part) - 1], -1);
+                # antiguo = true: formato solo se listan los productos envasados, false: se listan todas las maquinas, como maximo 2, y si exiten productos envasados
+                if(true){
+                    foreach ($registro_productos as $val) {
+                        # MAQ.
+                        $maq = trim($val->maquina->nombre);
+                        $maq_fin = mb_strtoupper($maq);
+                        if(mb_strlen($maq) >= 5){
+                            $part = explode( ' ', $maq_fin);
+                            if(count($part) >= 2){
+                                $maq_fin = ((mb_strlen($part[0])> 4 )? mb_substr($part[0], 0, 3): $part[0])
+                                    . ' '. mb_substr($part[count($part) - 1], -1);
+                            }
                         }
+                        $pdf->setFont('Arial', 'B', 6);
+                        $pdf->SetXY($pdf->START_X_ATTR['COL_1']['X'], $pdf->ALTURA_DATOS + ($contador * $pdf->ALTURA_CELDA));
+                        $pdf->Cell($pdf->START_X_ATTR['COL_1']['WIDTH'], $pdf->ALTURA_CELDA, utf8_decode( $maq_fin/* 'MAQ 1' */ ), $borde_celda, 0, 'L');
+
+                        # nombre 
+                        if(is_null($val->encargado)) {
+                            $this->SetTextColor(255, 0, 0);
+                            $val->encargado->username = 'SIN OPERADOR';
+                        }
+                        $pdf->setFont('Arial', '', 7);
+                        $pdf->SetXY($pdf->START_X_ATTR['COL_2']['X'], $pdf->ALTURA_DATOS + ($contador * $pdf->ALTURA_CELDA));
+                        $pdf->Cell($pdf->START_X_ATTR['COL_2']['WIDTH'], $pdf->ALTURA_CELDA, utf8_decode( $val->encargado->username ), $borde_celda, 0, 'C');
+                        
+                        # sabor
+                        $pdf->setFont('Arial', '', 7);
+                        $pdf->SetXY($pdf->START_X_ATTR['COL_3']['X'], $pdf->ALTURA_DATOS + ($contador * $pdf->ALTURA_CELDA));                    
+                        $pdf->CellFitScale($pdf->START_X_ATTR['COL_3']['WIDTH'], $pdf->ALTURA_CELDA, $val->sabor, $borde_celda, 1, 'C');
+
+                        # baldes, saldo anterior
+                        $pdf->setFont('Arial', '', 7);
+                        $pdf->SetXY($pdf->START_X_ATTR['COL_4']['X'], $pdf->ALTURA_DATOS + ($contador * $pdf->ALTURA_CELDA));
+                        $pdf->Cell($pdf->START_X_ATTR['COL_4']['WIDTH'], $pdf->ALTURA_CELDA, utf8_decode( is_null($val->balde_saldo_anterior)? '-': $val->producto_saldo_anterior->balde_sobro_del_dia ), $borde_celda, 0, 'C');
+                        if($val->balde_saldo_anterior){
+                            $total_saldo_anterior += $val->balde_saldo_anterior->balde_sobro_del_dia;
+                        }
+
+                        # baldes, cambio de maquina
+                        $pdf->setFont('Arial', '', 7);
+                        $pdf->SetXY($pdf->START_X_ATTR['COL_5']['X'], $pdf->ALTURA_DATOS + ($contador * $pdf->ALTURA_CELDA));
+                        $pdf->Cell($pdf->START_X_ATTR['COL_5']['WIDTH'], $pdf->ALTURA_CELDA, utf8_decode( '' ), $borde_celda, 0, 'C');
+                        if($val->producto_cambio_de_maquina){
+                            $total_cambio_de_maquina += $val->balde_cambio_de_maquina_baldes;
+                        }
+
+                        # baldes, entrada de molino
+                        $pdf->setFont('Arial', '', 7);
+                        $pdf->SetXY($pdf->START_X_ATTR['COL_6']['X'], $pdf->ALTURA_DATOS + ($contador * $pdf->ALTURA_CELDA));
+                        $pdf->Cell($pdf->START_X_ATTR['COL_6']['WIDTH'], $pdf->ALTURA_CELDA, utf8_decode( ($val->entrada_cantidad_de_baldes > 0? $val->entrada_cantidad_de_baldes: '-') ), $borde_celda, 0, 'C');
+                        if($val->entrada_cantidad_de_baldes > 0){
+                            $total_entrada_de_molino += $val->entrada_cantidad_de_baldes;
+                        }
+
+                        # baldes, sobro del dia
+                        $pdf->setFont('Arial', '', 7);
+                        $pdf->SetXY($pdf->START_X_ATTR['COL_7']['X'], $pdf->ALTURA_DATOS + ($contador * $pdf->ALTURA_CELDA));
+                        $pdf->Cell($pdf->START_X_ATTR['COL_7']['WIDTH'], $pdf->ALTURA_CELDA, utf8_decode( is_null($val->balde_sobro_del_dia)? '-': $val->balde_sobro_del_dia ), $borde_celda, 0, 'C');
+                        if($val->balde_sobro_del_dia){
+                            $total_sobro_del_dia += $val->balde_sobro_del_dia;
+                        }
+
+                        # cajas, cajas
+                        $pdf->setFont('Arial', '', 7);
+                        $pdf->SetXY($pdf->START_X_ATTR['COL_8']['X'], $pdf->ALTURA_DATOS + ($contador * $pdf->ALTURA_CELDA));
+                        $pdf->Cell($pdf->START_X_ATTR['COL_8']['WIDTH'], $pdf->ALTURA_CELDA, utf8_decode( is_null($val->caja_cajas)? '-': $val->caja_cajas ), $borde_celda, 0, 'C');
+                        if($val->caja_cajas){
+                            $total_cajas += $val->caja_cajas; 
+                        }
+
+                        # cajas, bolsas
+                        $pdf->setFont('Arial', '', 7);
+                        $pdf->SetXY($pdf->START_X_ATTR['COL_9']['X'], $pdf->ALTURA_DATOS + ($contador * $pdf->ALTURA_CELDA));
+                        $pdf->Cell($pdf->START_X_ATTR['COL_9']['WIDTH'], $pdf->ALTURA_CELDA, utf8_decode( is_null($val->caja_bolsas)? '-': $val->caja_bolsas ), $borde_celda, 0, 'C');
+                        if($val->caja_bolsas){
+                            $total_bolsas += $val->caja_bolsas; 
+                        }
+
+                        # observaciones
+                        $pdf->setFont('Arial', '', 6);
+                        #$val->observacion .= ' ademas de que existe rumores sobre la salida de contadores';
+                        $pdf->SetXY($pdf->START_X_ATTR['COL_23']['X'], $pdf->ALTURA_DATOS + ($contador * $pdf->ALTURA_CELDA));
+                        $pdf->Cell($pdf->START_X_ATTR['COL_23']['WIDTH'], $pdf->ALTURA_CELDA, utf8_decode('' ), $borde_celda, 0, 'L');
+                        $pdf->SetXY($pdf->START_X_ATTR['COL_23']['X'], $pdf->ALTURA_DATOS + ($contador * $pdf->ALTURA_CELDA));
+                        $pdf->MultiCell($pdf->START_X_ATTR['COL_23']['WIDTH'], 
+                            $pdf->ALTURA_CELDA / (ceil($pdf->GetStringWidth( utf8_decode( $val->observacion ) ) / ($pdf->START_X_ATTR['COL_23']['WIDTH'] -2.5) ) == 0? 1: ceil($pdf->GetStringWidth( utf8_decode( $val->observacion ) ) / ($pdf->START_X_ATTR['COL_23']['WIDTH'] -2.5) )), 
+                            utf8_decode( $val->observacion ), 0, 'L', 0);
+                        
+                        $contador++;
                     }
-                    $pdf->setFont('Arial', 'B', 6);
-                    $pdf->SetXY($pdf->START_X_ATTR['COL_1']['X'], $pdf->ALTURA_DATOS + ($contador * $pdf->ALTURA_CELDA));
-                    $pdf->Cell($pdf->START_X_ATTR['COL_1']['WIDTH'], $pdf->ALTURA_CELDA, utf8_decode( $maq_fin/* 'MAQ 1' */ ), $borde_celda, 0, 'L');
+                    $new_contador = $contador;
+                    /* if($contador%$pdf->MAX_FILAS==0){
+                        $pdf->AddPage();
+                        $new_contador = 0;
+                    } */
+                    for ($i=$new_contador; $i < $pdf->MAX_FILAS ; $i++) { 
+                        $pdf->setFont('Arial', '', 7);
 
-                    # nombre 
-                    if(is_null($val->encargado)) {
-                        $this->SetTextColor(255, 0, 0);
-                        $val->encargado->username = 'SIN OPERADOR';
+                        $pdf->SetXY($pdf->START_X_ATTR['COL_1']['X'], $pdf->ALTURA_DATOS + ($i * $pdf->ALTURA_CELDA));
+                        $pdf->Cell($pdf->START_X_ATTR['COL_1']['WIDTH'], $pdf->ALTURA_CELDA, utf8_decode( ''/* ($i+1) */ ), $borde_celda, 0, 'C');
+                        $pdf->Cell($pdf->START_X_ATTR['COL_2']['WIDTH'], $pdf->ALTURA_CELDA, utf8_decode( '' ), $borde_celda, 0, 'C');
+                        $pdf->Cell($pdf->START_X_ATTR['COL_3']['WIDTH'], $pdf->ALTURA_CELDA, utf8_decode( '' ), $borde_celda, 0, 'C');
+
+                        $pdf->Cell($pdf->START_X_ATTR['COL_4']['WIDTH'], $pdf->ALTURA_CELDA, utf8_decode( '' ), $borde_celda, 0, 'C');
+                        $pdf->Cell($pdf->START_X_ATTR['COL_5']['WIDTH'], $pdf->ALTURA_CELDA, utf8_decode( '' ), $borde_celda, 0, 'C');
+                        $pdf->Cell($pdf->START_X_ATTR['COL_6']['WIDTH'], $pdf->ALTURA_CELDA, utf8_decode( '' ), $borde_celda, 0, 'C');
+                        $pdf->Cell($pdf->START_X_ATTR['COL_7']['WIDTH'], $pdf->ALTURA_CELDA, utf8_decode( '' ), $borde_celda, 0, 'C');
+
+                        $pdf->Cell($pdf->START_X_ATTR['COL_8']['WIDTH'], $pdf->ALTURA_CELDA, utf8_decode( '' ), $borde_celda, 0, 'C');
+                        $pdf->Cell($pdf->START_X_ATTR['COL_9']['WIDTH'], $pdf->ALTURA_CELDA, utf8_decode( '' ), $borde_celda, 0, 'C');
+
+                        $pdf->Cell($pdf->START_X_ATTR['COL_10']['WIDTH'], $pdf->ALTURA_CELDA, utf8_decode( '' ), $borde_celda, 0, 'C');
+                        $pdf->Cell($pdf->START_X_ATTR['COL_11']['WIDTH'], $pdf->ALTURA_CELDA, utf8_decode( '' ), $borde_celda, 0, 'C');
+                        $pdf->Cell($pdf->START_X_ATTR['COL_12']['WIDTH'], $pdf->ALTURA_CELDA, utf8_decode( '' ), $borde_celda, 0, 'C');
+
+                        $pdf->Cell($pdf->START_X_ATTR['COL_13']['WIDTH'], $pdf->ALTURA_CELDA, utf8_decode( '' ), $borde_celda, 0, 'C');
+                        $pdf->Cell($pdf->START_X_ATTR['COL_14']['WIDTH'], $pdf->ALTURA_CELDA, utf8_decode( '' ), $borde_celda, 0, 'C');
+                        $pdf->Cell($pdf->START_X_ATTR['COL_15']['WIDTH'], $pdf->ALTURA_CELDA, utf8_decode( '' ), $borde_celda, 0, 'C');
+
+                        $pdf->Cell($pdf->START_X_ATTR['COL_16']['WIDTH'], $pdf->ALTURA_CELDA, utf8_decode( '' ), $borde_celda, 0, 'C');
+                        $pdf->Cell($pdf->START_X_ATTR['COL_17']['WIDTH'], $pdf->ALTURA_CELDA, utf8_decode( '' ), $borde_celda, 0, 'C');
+                        $pdf->Cell($pdf->START_X_ATTR['COL_18']['WIDTH'], $pdf->ALTURA_CELDA, utf8_decode( '' ), $borde_celda, 0, 'C');
+                        $pdf->Cell($pdf->START_X_ATTR['COL_19']['WIDTH'], $pdf->ALTURA_CELDA, utf8_decode( '' ), $borde_celda, 0, 'C');
+                        $pdf->Cell($pdf->START_X_ATTR['COL_20']['WIDTH'], $pdf->ALTURA_CELDA, utf8_decode( '' ), $borde_celda, 0, 'C');
+
+                        $pdf->Cell($pdf->START_X_ATTR['COL_21']['WIDTH'], $pdf->ALTURA_CELDA, utf8_decode( '' ), $borde_celda, 0, 'C');
+                        $pdf->Cell($pdf->START_X_ATTR['COL_22']['WIDTH'], $pdf->ALTURA_CELDA, utf8_decode( '' ), $borde_celda, 0, 'C');
+                        $pdf->Cell($pdf->START_X_ATTR['COL_23']['WIDTH'], $pdf->ALTURA_CELDA, utf8_decode( '' ), $borde_celda, 0, 'C');
                     }
-                    $pdf->setFont('Arial', '', 7);
-                    $pdf->SetXY($pdf->START_X_ATTR['COL_2']['X'], $pdf->ALTURA_DATOS + ($contador * $pdf->ALTURA_CELDA));
-                    $pdf->Cell($pdf->START_X_ATTR['COL_2']['WIDTH'], $pdf->ALTURA_CELDA, utf8_decode( $val->encargado->username ), $borde_celda, 0, 'C');
-                    
-                    # sabor
-                    $pdf->setFont('Arial', '', 7);
-                    $pdf->SetXY($pdf->START_X_ATTR['COL_3']['X'], $pdf->ALTURA_DATOS + ($contador * $pdf->ALTURA_CELDA));                    
-                    $pdf->CellFitScale($pdf->START_X_ATTR['COL_3']['WIDTH'], $pdf->ALTURA_CELDA, $val->sabor, $borde_celda, 1, 'C');
 
-                    # baldes, saldo anterior
-                    $pdf->setFont('Arial', '', 7);
-                    $pdf->SetXY($pdf->START_X_ATTR['COL_4']['X'], $pdf->ALTURA_DATOS + ($contador * $pdf->ALTURA_CELDA));
-                    $pdf->Cell($pdf->START_X_ATTR['COL_4']['WIDTH'], $pdf->ALTURA_CELDA, utf8_decode( is_null($val->balde_saldo_anterior)? '-': $val->producto_saldo_anterior->balde_sobro_del_dia ), $borde_celda, 0, 'C');
-
-                    # baldes, cambio de maquina
-                    $pdf->setFont('Arial', '', 7);
-                    $pdf->SetXY($pdf->START_X_ATTR['COL_5']['X'], $pdf->ALTURA_DATOS + ($contador * $pdf->ALTURA_CELDA));
-                    $pdf->Cell($pdf->START_X_ATTR['COL_5']['WIDTH'], $pdf->ALTURA_CELDA, utf8_decode( '' ), $borde_celda, 0, 'C');
-
-                    # baldes, entrada de molino
-                    $total_baldes = 0;
-                    foreach ($val->salidas_de_molino as $sal_mol ) {
-                        $total_baldes += count($sal_mol->detalle_salida_molinos);
+                    if($total_saldo_anterior > 0){
+                        $pdf->SetTotalBaldeAnterior(round($total_saldo_anterior, 2));
                     }
-                    $pdf->setFont('Arial', '', 7);
-                    $pdf->SetXY($pdf->START_X_ATTR['COL_6']['X'], $pdf->ALTURA_DATOS + ($contador * $pdf->ALTURA_CELDA));
-                    $pdf->Cell($pdf->START_X_ATTR['COL_6']['WIDTH'], $pdf->ALTURA_CELDA, utf8_decode( $total_baldes ), $borde_celda, 0, 'C');
+                    if($total_cambio_de_maquina > 0){
+                        $pdf->SetTotalCambioMaquina(round($total_cambio_de_maquina, 2));
+                    }
+                    if($total_entrada_de_molino > 0){
+                        $pdf->SetTotalEntradaMolino(round($total_entrada_de_molino, 2));
+                    }
+                    if($total_sobro_del_dia > 0){
+                        $pdf->SetTotalSobroDelDia(round($total_sobro_del_dia, 2));
+                    }
 
-                    # baldes, sobro del dia
-                    $pdf->setFont('Arial', '', 7);
-                    $pdf->SetXY($pdf->START_X_ATTR['COL_7']['X'], $pdf->ALTURA_DATOS + ($contador * $pdf->ALTURA_CELDA));
-                    $pdf->Cell($pdf->START_X_ATTR['COL_7']['WIDTH'], $pdf->ALTURA_CELDA, utf8_decode( is_null($val->balde_sobro_del_dia)? '-': $val->balde_sobro_del_dia ), $borde_celda, 0, 'C');
-
-                    # cajas, cajas
-                    $pdf->setFont('Arial', '', 7);
-                    $pdf->SetXY($pdf->START_X_ATTR['COL_8']['X'], $pdf->ALTURA_DATOS + ($contador * $pdf->ALTURA_CELDA));
-                    $pdf->Cell($pdf->START_X_ATTR['COL_8']['WIDTH'], $pdf->ALTURA_CELDA, utf8_decode( is_null($val->caja_cajas)? '-': $val->caja_cajas ), $borde_celda, 0, 'C');
-
-                    # cajas, bolsas
-                    $pdf->setFont('Arial', '', 7);
-                    $pdf->SetXY($pdf->START_X_ATTR['COL_9']['X'], $pdf->ALTURA_DATOS + ($contador * $pdf->ALTURA_CELDA));
-                    $pdf->Cell($pdf->START_X_ATTR['COL_9']['WIDTH'], $pdf->ALTURA_CELDA, utf8_decode( is_null($val->caja_bolsas)? '-': $val->caja_bolsas ), $borde_celda, 0, 'C');
-
-                    # observaciones
-                    $pdf->setFont('Arial', '', 6);
-                    #$val->observacion .= ' ademas de que existe rumores sobre la salida de contadores';
-                    $pdf->SetXY($pdf->START_X_ATTR['COL_23']['X'], $pdf->ALTURA_DATOS + ($contador * $pdf->ALTURA_CELDA));
-                    $pdf->Cell($pdf->START_X_ATTR['COL_23']['WIDTH'], $pdf->ALTURA_CELDA, utf8_decode('' ), $borde_celda, 0, 'L');
-                    $pdf->SetXY($pdf->START_X_ATTR['COL_23']['X'], $pdf->ALTURA_DATOS + ($contador * $pdf->ALTURA_CELDA));
-                    $pdf->MultiCell($pdf->START_X_ATTR['COL_23']['WIDTH'], 
-                        $pdf->ALTURA_CELDA / (ceil($pdf->GetStringWidth( utf8_decode( $val->observacion ) ) / ($pdf->START_X_ATTR['COL_23']['WIDTH'] -2.5) ) == 0? 1: ceil($pdf->GetStringWidth( utf8_decode( $val->observacion ) ) / ($pdf->START_X_ATTR['COL_23']['WIDTH'] -2.5) )), 
-                        utf8_decode( $val->observacion ), 0, 'L', 0);
-                    
-                $contador++;
+                    if($total_cajas > 0){
+                        $pdf->SetTotalCajasCajas(round($total_cajas, 2));
+                    }
+                    if($total_bolsas > 0){
+                        $pdf->SetTotalCajasBolsas(round($total_bolsas, 2));
+                    }
+                } else {
+                    # obtener maquinas
+                    $maquinas = Maquinas::get();
                 }
-
                 $pdf->Output('I', $nombre_archivo);
                 exit;
             } else {

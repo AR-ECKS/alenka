@@ -41,4 +41,26 @@ class RegistroParaPicar extends Model
         return $this->hasMany(DetalleRegistroParaPicar::class)
             ->where('estado', '<>', 0);;
     }
+
+    /* attributes 
+     * cantidad_kg
+    */
+    public function getCantidadKgAttribute() {
+        $total = 0.00;
+        foreach($this->detalle_registros_para_picar as $det_pic){
+            $total += $det_pic->producto_envasado->para_picar_kg_de_bolsitas; # $det_pic->producto_envasado? $det_pic->producto_envasado->para_picar_kg_de_bolsitas;
+        }
+        return round($total, 2);
+    }
+
+    /* attributes 
+     * cantidad_bolsitas
+    */
+    public function getCantidadBolsitasAttribute() {
+        $total = 0;
+        foreach($this->detalle_registros_para_picar as $det_pic){
+            $total += $det_pic->producto_envasado->para_picar_nro_de_bolsitas; # $det_pic->producto_envasado? $det_pic->producto_envasado->para_picar_nro_de_bolsitas;
+        }
+        return $total;
+    }
 }

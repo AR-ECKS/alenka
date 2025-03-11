@@ -7,6 +7,10 @@
             </li>
 
             <li class="nav-item" role="presentation">
+                <button class="nav-link" id="pills-registro-picar-tab" data-toggle="pill" data-target="#pills-registro-picar" type="button" role="tab" aria-controls="pills-registro-picar" aria-selected="false">Para picar</button>
+            </li>
+
+            <li class="nav-item" role="presentation">
                 <button class="nav-link active" id="pills-preparacion-tab" data-toggle="pill" data-target="#pills-preparacion" type="button" role="tab" aria-controls="pills-home" aria-selected="true">Detalles</button>
             </li>
             <li class="nav-item" role="presentation">
@@ -18,7 +22,12 @@
                 @include('livewire.extras.data-despacho', [
                     'data_despacho' => $carac_proceso_preparacion->despacho
                 ])
-                <p>{{ json_encode( $carac_proceso_preparacion->despacho )}}</p>
+                {{-- <p>{{ json_encode( $carac_proceso_preparacion->despacho )}}</p> --}}
+            </div>
+            <div class="tab-pane fade" id="pills-registro-picar" role="tabpanel" aria-labelledby="pills-registro-picar-tab">
+                @include('livewire.extras.data-registro-para-picar', [
+                    'data_registro_para_picar' => $carac_proceso_preparacion->registro_para_picar
+                ])
             </div>
             <div class="tab-pane fade show active" id="pills-preparacion" role="tabpanel" aria-labelledby="pills-preparacion-tab">
                 @include('livewire.extras.data-proceso-preparacion', [

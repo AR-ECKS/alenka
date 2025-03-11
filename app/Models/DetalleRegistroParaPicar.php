@@ -40,6 +40,7 @@ class DetalleRegistroParaPicar extends Model
 
     function producto_envasado(){
         return $this->belongsTo(ProductosEnvasados::class, 'producto_envasado_id')
+            ->where('para_picar', 1)
             ->where('estado', '<>', 0);
     }
 }

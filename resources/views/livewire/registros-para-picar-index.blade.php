@@ -524,7 +524,7 @@
                 </div>
                 <div class="modal-footer d-flex justify-content-center">
                     <button type="button" class="btn btn-danger" wire:click="close_modal_edit_detalle_para_picar">CANCELAR</button>
-                    <button type="button" class="btn btn-primary" wire:click="save_modal_edit_detalle_para_picar">ACTUALIZAR</button>
+                    <button type="button" class="btn btn-primary" wire:click="save_modal_edit_detalle_para_picar++++">ACTUALIZAR</button>
                 </div>
             </div>
         @else
@@ -539,6 +539,7 @@
                                 <th>Encargado</th>
                                 <th>Fecha de inicio</th>
                                 <th>Fecha límite</th>
+                                <th>Bolsitas</th>
                                 <th>Observaciones</th>
                                 <th>Estado</th>
                                 <th class="text-right">Acciones</th>
@@ -567,6 +568,9 @@
                                     <td class="text-center">
                                         {{ \Carbon\Carbon::parse($reg_para_picar->fecha_fin)->isoFormat('DD-MM-YYYY')}} <br>
                                         {{ \Carbon\Carbon::parse($reg_para_picar->fecha_fin)->locale('es')->isoFormat('dddd, D \d\e MMMM \d\e\l YYYY') }}
+                                    </td>
+                                    <td>
+                                        {{ $reg_para_picar->cantidad_bolsitas }} <span class="text-primary">({{ $reg_para_picar->cantidad_kg }} kg)</span>
                                     </td>
                                     <td>{{ $reg_para_picar->observacion }}</td>
                                     <td>

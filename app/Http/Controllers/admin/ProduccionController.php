@@ -77,8 +77,8 @@ class ProduccionController extends Controller
                 $pdf->Cell(15, $pdf->ALTURA_CELDA, utf8_decode( $salida->sabor ), $borde_celda, 0, 'C');
 
                 # cantidad de baldes 
-                $pdf->Cell(35, $pdf->ALTURA_CELDA, utf8_decode( count($salida->detalle_salida_molinos) ), $borde_celda, 0, 'C');
-                $total_baldes += count($salida->detalle_salida_molinos);
+                $pdf->Cell(35, $pdf->ALTURA_CELDA, utf8_decode( $salida->cantidad_baldes ), $borde_celda, 0, 'C');
+                $total_baldes += $salida->cantidad_baldes;
 
                 # nombre => nombre del receptor
                 $pdf->MultiCell(20, $pdf->ALTURA_CELDA , utf8_decode( $salida->recepcionista->username ), 1, 'C');
