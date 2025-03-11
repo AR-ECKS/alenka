@@ -715,12 +715,6 @@
                                         @endif
                                     </td>
                                     <td>
-                                        @php 
-                                            $total_baldes = 0;
-                                            foreach ($prod_env->salidas_de_molino as $sal_mol ) {
-                                                $total_baldes += count($sal_mol->detalle_salida_molinos);
-                                            }
-                                        @endphp
                                         @if($prod_env->entrada_cantidad_de_baldes > 0)
                                             {{ $prod_env->entrada_cantidad_de_baldes }}
                                             <span class="text-primary">({{$prod_env->entrada_cantidad_kg}} kg.)</span>
