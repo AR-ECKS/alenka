@@ -530,6 +530,23 @@
                     <button type="button" class="btn btn-primary" wire:click="save_modal_editar_salida_mol">ACTUALIZAR</button>
                 </div>
             </div>
+        @elseif($operation=='view_salida_molino')
+            <div class="card-body p-3">
+                <div class="modal-header">
+                    <h5 class="modal-title mt-0 text-center">DETALLES DE SALIDA DE MOLINO</h5>
+                        <button type="button" class="btn btn-close" data-bs-dismiss="modal" aria-label="close" wire:click="close_modal_show_salida_de_molino"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        @include('livewire.extras.details-salida_de_molino', [
+                            'carac_salida_de_molino' => $det_salida_de_molino
+                        ])
+                    </div>
+                </div>
+                <div class="modal-footer d-flex justify-content-center">
+                    <button type="button" class="btn btn-danger" wire:click="close_modal_show_salida_de_molino">VOLVER</button>
+                </div>
+            </div>
         @else
             {{-- -------------- MAIN ------------------------}}
             <div class="row">
@@ -687,6 +704,11 @@
                                                             }
                                                         @endphp
                                                        {{--  @if($editar) --}}
+                                                            <a wire:click="open_modal_show_salida_de_molino({{ $salda_molino->id }})"
+                                                                class="dropdown-item" data-placement="top"
+                                                                title="Editar {{ $salda_molino->codigo }}">
+                                                                <i class="fas fa-eye"></i> Ver detalles
+                                                            </a>
                                                             <a wire:click="open_modal_editar_salida_mol({{ $salda_molino->id }})"
                                                                 class="dropdown-item" data-placement="top"
                                                                 title="Editar {{ $salda_molino->codigo }}">

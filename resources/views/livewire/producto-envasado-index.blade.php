@@ -570,6 +570,21 @@
                     <button type="button" class="btn btn-primary" wire:click="save_modal_editar_para_picar">GUARDAR</button>
                 </div>
             </div>
+        @elseif($operation=='view_producto_envasado')
+            <div class="card-body p-3">
+                <div class="modal-header">
+                    <h5 class="modal-title mt-0 text-center">DETALLES DE PRODUCTO ENVASADO</h5>
+                        <button type="button" class="btn btn-close" data-bs-dismiss="modal" aria-label="close" wire:click="close_modal_show_producto_envasado"></button>
+                </div>
+                <div class="modal-body">
+                    @include('livewire.extras.details-producto_envasado', [
+                        'carac_productos_envasados' => $det_producto_envasado
+                    ])
+                </div>
+                <div class="modal-footer d-flex justify-content-center">
+                    <button type="button" class="btn btn-danger" wire:click="close_modal_show_producto_envasado">VOLVER</button>
+                </div>
+            </div>
         @else
             {{-- MAIN --}}
             <div class="row">
@@ -763,11 +778,11 @@
                                                     <i class="fas fa-cog"></i> Acción
                                                 </button>
                                                 <div class="dropdown-menu">
-                                                       {{--  <a wire:click="show_proceso"
+                                                        <a wire:click="open_modal_show_producto_envasado({{ $prod_env->id }})"
                                                             class="dropdown-item" data-placement="top"
                                                             title="Ver detalles">
                                                             <i class="fas fa-eye"></i> Ver Detalles
-                                                        </a> --}}
+                                                        </a>
                                                         {{-- @can('crear_entrega_a_produccion') --}}
                                                         @if($prod_env->estado == 1)
                                                             <a wire:click="open_modal_editar_baldes({{ $prod_env->id }})"

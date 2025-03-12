@@ -1,5 +1,8 @@
 @if(isset($data_despacho))
     <div class="row">
+        <div class="col-md-12">
+            <h5 class="text-center">DESPACHO</h5>
+        </div>
         <div class="col-md-4">
             <div class="input-group mb-2">
                 <div class="input-group-prepend">
@@ -89,7 +92,7 @@
     </div>
 
     <hr>
-    @if(count($data_despacho->detalle_despachos) > 0)
+    @if(count($data_despacho->detalle_despachos) > 0 && isset($data_listar) )
         <div class="table-responsive-xl">
             <table class="table table-sm text-sm table-striped">
                 <thead>

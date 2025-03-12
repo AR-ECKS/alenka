@@ -857,6 +857,23 @@ class ProductoEnvasadoIndex extends Component
         }
     }
 
+    /* ************************************************************** */
+
+    public $det_producto_envasado = null;
+
+    public function open_modal_show_producto_envasado($id){
+        $this->close_modal_show_producto_envasado();
+        $this->det_producto_envasado = ProductosEnvasados::where('id', $id)->first();
+        if($this->det_producto_envasado){
+            $this->operation = 'view_producto_envasado';
+        }
+    }
+
+    public function close_modal_show_producto_envasado(){
+        $this->operation = '';
+        $this->det_producto_envasado = null;
+    }
+
     /* *********************** END RULES ************************** */
 
     public function confirmar_producto_envasado($id){

@@ -731,4 +731,20 @@ class SalidaMolinoIndex extends Component
 
     /* ************************************************************** */
 
+    public $det_salida_de_molino = null;
+
+    public function open_modal_show_salida_de_molino($id){
+        $this->close_modal_show_salida_de_molino();
+        $this->det_salida_de_molino = SalidasDeMolino::where('id', $id)->first();
+        if($this->det_salida_de_molino){
+            $this->operation = 'view_salida_molino';
+        }
+    }
+
+    public function close_modal_show_salida_de_molino(){
+        $this->operation = '';
+        $this->det_salida_de_molino = null;
+    }
+    /* *********************************************************** */
+
 }

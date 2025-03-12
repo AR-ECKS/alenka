@@ -462,6 +462,23 @@ class RegistrosParaPicarIndex extends Component
             ->where('estado', '<>', 0)->first();
     }
 
+    /* ************************************************************** */
+
+    public $det_registro_para_picar = null;
+
+    public function open_modal_show_registro_picar($id){
+        $this->close_modal_show_registro_picar();
+        $this->det_registro_para_picar = RegistroParaPicar::where('id', $id)->first();
+        if($this->det_registro_para_picar){
+            $this->operation = 'view_registro_picar';
+        }
+    }
+
+    public function close_modal_show_registro_picar(){
+        $this->operation = '';
+        $this->det_registro_para_picar = null;
+    }
+
     /* ********************** END RULES ************************** */
 
     public function eliminar_registro_para_picar($id){

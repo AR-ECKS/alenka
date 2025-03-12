@@ -527,6 +527,21 @@
                     <button type="button" class="btn btn-primary" wire:click="save_modal_edit_detalle_para_picar++++">ACTUALIZAR</button>
                 </div>
             </div>
+        @elseif($operation=='view_registro_picar')
+            <div class="card-body p-3">
+                <div class="modal-header">
+                    <h5 class="modal-title mt-0 text-center">DETALLES DE REGISTRO PARA PICAR</h5>
+                        <button type="button" class="btn btn-close" data-bs-dismiss="modal" aria-label="close" wire:click="close_modal_show_registro_picar"></button>
+                </div>
+                <div class="modal-body">
+                    @include('livewire.extras.details-registro_para_picar', [
+                        'carac_registro_para_picar' => $det_registro_para_picar
+                    ])
+                </div>
+                <div class="modal-footer d-flex justify-content-center">
+                    <button type="button" class="btn btn-danger" wire:click="close_modal_show_registro_picar">VOLVER</button>
+                </div>
+            </div>
         @else
             @if(count($registros_para_picar) > 0)
                 <div class="table-responsive-xl">
@@ -587,7 +602,7 @@
                                                     <i class="fas fa-cog"></i> Accion
                                                 </button>
                                                 <div class="dropdown-menu">
-                                                        <a wire:click="open_modal_show_prep_proceso({{ $reg_para_picar->id }})"
+                                                        <a wire:click="open_modal_show_registro_picar({{ $reg_para_picar->id }})"
                                                             class="dropdown-item" data-placement="top"
                                                             title="Ver detalles">
                                                             <i class="fas fa-eye"></i> Ver Detalles

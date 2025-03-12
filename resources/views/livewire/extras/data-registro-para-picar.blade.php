@@ -1,5 +1,8 @@
 @if(isset($data_registro_para_picar))
     <div class="row">
+        <div class="col-md-12">
+            <h5 class="text-center">REGISTRO PARA PICAR</h5>
+        </div>
         <div class="col-md-4">
             <div class="input-group mb-2">
                 <div class="input-group-prepend">
@@ -119,7 +122,7 @@
     </div>
 
     <hr>
-    @if(count($data_registro_para_picar->detalle_registros_para_picar) > 0)
+    @if(count($data_registro_para_picar->detalle_registros_para_picar ) > 0 && isset($data_listar) )
         <div class="table-responsive-xl">
             <table class="table table-sm text-sm table-striped">
                 <thead class="text-center">

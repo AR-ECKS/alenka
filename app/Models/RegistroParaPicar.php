@@ -42,6 +42,12 @@ class RegistroParaPicar extends Model
             ->where('estado', '<>', 0);;
     }
 
+    /* REVERSE */
+    public function preparacion(){
+        return $this->hasOne(ProcesoPreparacion::class, 'recepcion_para_picar_id')
+            ->where('estado', '<>', 0);
+    }
+
     /* attributes 
      * cantidad_kg
     */

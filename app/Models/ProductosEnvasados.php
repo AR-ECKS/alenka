@@ -64,15 +64,24 @@ class ProductosEnvasados extends Model
         return $this->belongsTo(ProductosEnvasados::class, 'balde_cambio_de_maquina_id');
     }
 
-    /* REVERSE */
-
     public function salidas_de_molino(){
         return $this->hasMany(SalidasDeMolino::class, 'producto_envasado_id')
             ->where('estado', '<>', 0);
     }
 
+    /* REVERSE */
+
     public function cambio_maquina_descuento(){
         return $this->hasOne(ProductosEnvasados::class, 'balde_cambio_de_maquina_id');
+    }
+
+    public function sobro_del_dia_descuento(){
+        return $this->hasOne(ProductosEnvasados::class, 'balde_saldo_anterior');
+    }
+
+    public function detalle_registro_picar(){
+        return $this->hasOne(DetalleRegistroParaPicar::class, 'producto_envasado_id')
+            ->where('estado', '<>', 0);
     }
 
     /* attributes 
